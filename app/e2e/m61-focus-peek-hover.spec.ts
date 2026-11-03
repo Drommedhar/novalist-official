@@ -54,8 +54,11 @@ interface PeekState {
   height: number
 }
 
-/** Viewport rectangle of the first occurrence of `word` in the prose. */
+/** Bring the first occurrence into view before measuring its viewport rectangle. */
 async function wordBox(page: Page, word: string, firstFragment = false): Promise<Box> {
+  const editor = page.frameLocator('.editor-frame').locator('#editor')
+  await expect(editor.locator(':scope > .nv-page')).toHaveCount(1)
+  await editor.locator('p').filter({ hasText: word }).first().scrollIntoViewIfNeeded()
   const frame = await page.locator('.editor-frame').boundingBox()
   if (!frame) throw new Error('the editor frame has no box')
   const inFrame = await page
@@ -78,7 +81,13 @@ async function wordBox(page: Page, word: string, firstFragment = false): Promise
       return null
     }, { needle: word, firstFragment })
   if (!inFrame) throw new Error(`"${word}" is not in the prose`)
-  return { ...inFrame, x: frame.x + inFrame.x, y: frame.y + inFrame.y }
+  const box = { ...inFrame, x: frame.x + inFrame.x, y: frame.y + inFrame.y }
+  const point = centre(box)
+  expect(point.x).toBeGreaterThan(frame.x)
+  expect(point.x).toBeLessThan(frame.x + frame.width)
+  expect(point.y).toBeGreaterThan(frame.y)
+  expect(point.y).toBeLessThan(frame.y + frame.height)
+  return box
 }
 
 const centre = (box: Box): { x: number; y: number } => ({
@@ -218,20 +227,7 @@ test('hover delay, cancellation and the off switch preserve deliberate keyboard 
     await seedNamedScene(h)
     const page = h.page
     const card = page.locator('.peek-card-anchor')
-    await expect(page.frameLocator('.editor-frame').locator('#editor > .nv-page')).toHaveCount(1)
-    const paragraph = page.frameLocator('.editor-frame').locator('#editor p').filter({ hasText: NAME }).first()
-    const namePoint = async () => {
-      // Settings and startup fitting can scroll or resize the prose. Bring the
-      // name into view and measure again before each deliberate interaction.
-      await paragraph.scrollIntoViewIfNeeded()
-      const point = centre(await wordBox(page, NAME, true))
-      const frame = (await page.locator('.editor-frame').boundingBox())!
-      expect(point.x).toBeGreaterThan(frame.x)
-      expect(point.x).toBeLessThan(frame.x + frame.width)
-      expect(point.y).toBeGreaterThan(frame.y)
-      expect(point.y).toBeLessThan(frame.y + frame.height)
-      return point
-    }
+    const namePoint = async () => centre(await wordBox(page, NAME, true))
     const hoverName = async () => {
       const point = await namePoint()
       await page.mouse.move(point.x, point.y)
