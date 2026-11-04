@@ -28,7 +28,7 @@ const { MarkdownEditor, SharedMarkdownSession, SharedSceneNotesDocument, flushPe
 for (const newline of ['\n', '\r\n']) test(`switching shared notes from Markdown to checklist while offline keeps one live document (${newline.length === 1 ? 'LF' : 'CRLF'})`, async () => {
   const dom = new JSDOM('<div id="notes"></div>', { pretendToBeVisual: true })
   const previous = new Map()
-  const globals = { window: dom.window, document: dom.window.document, MutationObserver: dom.window.MutationObserver,
+  const globals = { window: dom.window, Window: dom.window.Window, document: dom.window.document, MutationObserver: dom.window.MutationObserver,
     HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, getComputedStyle: dom.window.getComputedStyle,
     requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window), cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window),
     IS_REACT_ACT_ENVIRONMENT: true }

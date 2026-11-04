@@ -135,7 +135,7 @@ for (const platform of ['linux', 'darwin', 'win32']) {
     const h = await f.launchApp('unused', {}, '/temporary-test-profile', ['--test-extra'])
     assert.deepEqual(Array.from(f.launches[0].args), [
       platform === 'linux' ? 'e2e/launch-app.cjs' : 'out/main/index.js',
-      '--user-data-dir=/temporary-test-profile/profile', '--test-extra'
+      `--user-data-dir=${join('/temporary-test-profile', 'profile')}`, '--test-extra'
     ])
     await h.close()
   })
