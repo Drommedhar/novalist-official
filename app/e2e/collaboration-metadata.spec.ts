@@ -17,11 +17,12 @@ test('structured Codex controls enforce the named focus owner and refresh before
     const link = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 60_000).toISOString()])
     const guest = await launchApp('novalist-metadata-guest-')
     participants.push(guest)
-    await dismissTour(guest.page)
     await guest.rpc('collaboration/peer/join', [link, join(guest.workDir, 'Joined'), 'Guest'])
     for (const h of participants) {
       await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(h.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
+      // The first-run tour starts when a project opens, including after joining.
+      await dismissTour(h.page)
       await h.page.evaluate(async id => {
         window.novalistStores.shell.getState().setMainView('codex')
         await window.novalistStores.codex.getState().setType('character')

@@ -99,8 +99,15 @@ test('an extension panel resolves the design tokens and follows a theme change',
   // The type scale comes across too, not just the palette.
   expect(themed.font).toBe('15px')
 
-  // Switching theme repaints the panel with the rest of the app.
-  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'catppuccin-mocha'))
+  // Use the Settings action so asynchronous catalog refreshes keep the new
+  // selection. Mutating data-theme alone leaves the selected theme as Default.
+  await page.evaluate(() =>
+    window.novalistStores.settings.getState().update('global', { theme: 'Catppuccin Mocha' })
+  )
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'catppuccin-mocha')
+  await expect.poll(() => page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--nl-surface-card').trim()
+  )).toBe('#181825')
   await expect
     .poll(async () => (await read()).token, { timeout: 15_000 })
     .toBe('#181825')

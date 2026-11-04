@@ -28,7 +28,6 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     const owner = await launchApp('novalist-metadata-owner-')
     participants.push(owner)
     await seedBook(owner, { Opening: ['Arrival'] })
-    await dismissTour(owner.page)
     const character = await owner.rpc<{ id: string }>('entities/create', ['character', 'Research subject'])
     const [note] = await owner.rpc<{ id: string }[]>('research/save', [null, 'Shared source', 'Note', 'Original source.txt', [], []])
     await owner.rpc('manuscriptProps/setDefinitions', [[{ key: 'source', label: 'Source location', type: 'String', scope: 'Research', enumOptions: [], showInOutliner: false }]])
@@ -38,11 +37,12 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     const link = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 60_000).toISOString()])
     const guest = await launchApp('novalist-metadata-guest-')
     participants.push(guest)
-    await dismissTour(guest.page)
     await guest.rpc('collaboration/peer/join', [link, join(guest.workDir, 'Joined'), 'Guest'])
     for (const h of participants) {
       await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(h.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
+      // The first-run tour starts when a project opens, including after joining.
+      await dismissTour(h.page)
       await h.page.evaluate(id => window.novalistStores.shell.getState().navigateToResearch(id), note.id)
       await expect(h.page.locator('.research-title')).toHaveValue('Shared source')
     }
