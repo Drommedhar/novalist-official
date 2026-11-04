@@ -27,11 +27,21 @@ test('a word taught from the prose lands in the writer own dictionary', async ()
     // Nothing was learned before the writer asked for it.
     expect(await h.rpc<string[]>('spell/words')).toEqual([])
 
-    // Right-click visible prose, not the editor's potentially scrolled-off top
-    // edge. Supply deterministic spelling results to the real custom menu.
-    await editor.locator('p').filter({ hasText: 'The Aelthorn banner burned.' }).first().click({ button: 'right' })
-    await h.page.evaluate(() => {
-      const doc = document.querySelector<HTMLIFrameElement>('.editor-frame')!.contentDocument!
+    // Keep the synthetic menu event and spelling response in one browser task:
+    // a native right-click followed by a separate evaluate can lose the menu
+    // before the fixture response arrives. Anchor it to visible prose so the
+    // dictionary action remains reachable after the editor's initial layout.
+    const paragraph = editor.locator('p').filter({ hasText: 'The Aelthorn banner burned.' }).first()
+    await paragraph.scrollIntoViewIfNeeded()
+    await paragraph.evaluate((element) => {
+      const doc = element.ownerDocument
+      const rect = element.getBoundingClientRect()
+      element.dispatchEvent(new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left + 30,
+        clientY: rect.top + rect.height / 2
+      }))
       ;(
         doc.defaultView as unknown as {
           setSpellingSuggestions(word: string, suggestions: string[]): void
