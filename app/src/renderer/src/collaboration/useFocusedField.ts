@@ -16,6 +16,8 @@ export function useFocusedField(binding: FieldBinding, value: string, saved?: ()
   }
   useEffect(() => {
     controller.onChange = setView
+    // Autofocus can acquire a lease before this passive effect subscribes.
+    setView(controller.snapshot)
     const stop = registerPendingWrite(() => persistPendingWrite(key, flush))
     return () => {
       stop()
