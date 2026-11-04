@@ -11,6 +11,7 @@ async function signIn(desktop: Harness, server: string): Promise<void> {
   await dismissTour(desktop.page)
   await desktop.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
   await desktop.page.getByRole('button', { name: 'Collaboration', exact: true }).click()
+  await desktop.page.locator('#set-collaboration-mode').selectOption('hosted')
   await desktop.page.getByLabel('Server address', { exact: true }).fill(server)
   await desktop.page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(desktop.page.getByText(/^Signed in as HTTPS /)).toBeVisible()

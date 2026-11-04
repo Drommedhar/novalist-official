@@ -25,6 +25,7 @@ Download the latest release for your platform from the project's release page:
 - **Windows** — run the installer (`.exe`, NSIS).
 - **macOS** — open the `.dmg` and drag Novalist into Applications.
 - **Linux** — download the `.AppImage`, make it executable, and run it.
+- **Android alpha (Android 13+)** — tagged releases include `novalist-android-alpha-arm64.apk` for ARM64 phones and tablets, plus an x64 APK for emulators, on the same [GitHub release page](https://github.com/Drommedhar/novalist-official/releases). Download and open the APK, then allow installation from your browser or file manager if Android asks. The app uses the desktop version with `-alpha` appended, such as `3.6.2-alpha`. Distribution is through GitHub; there is no Google Play release yet.
 
 No account is required. Novalist works fully offline. The only times it touches the network are:
 

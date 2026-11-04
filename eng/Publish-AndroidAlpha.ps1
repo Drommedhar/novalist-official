@@ -13,7 +13,7 @@ if ($Tag -notmatch '^v?(\d+)\.(\d+)(?:\.(\d+))?(?:[-+][0-9A-Za-z.-]+)?$') {
     throw "Expected a version tag such as v3.6.2 or v3.6.2-alpha.1, got '$Tag'."
 }
 $patch = if ($Matches[3]) { $Matches[3] } else { '0' }
-$version = "$($Matches[1]).$($Matches[2]).$patch-alpha.$VersionCode"
+$version = "$($Matches[1]).$($Matches[2]).$patch-alpha"
 $repo = Split-Path $PSScriptRoot -Parent
 if (!$AndroidSdkDirectory -and $env:LOCALAPPDATA) {
     $AndroidSdkDirectory = Join-Path $env:LOCALAPPDATA 'Android/Sdk'

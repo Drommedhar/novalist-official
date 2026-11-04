@@ -33,7 +33,10 @@ When you reach Settings from a control elsewhere — the editor's **More writing
 Collaboration is available from **Collaborate** in the top bar, without opening
 Settings. Select **Share** for the open project or **Join** for an invitation.
 With no project open, only joining is available. Connection choices follow the
-runtime: Steam appears when available; relay server and direct TCP remain options.
+runtime: **Direct connection (TCP)** is selected by default in the regular app
+and on mobile; Steam-enabled builds select **Steam** when its runtime is available.
+**Relay server** remains an option in both editions. Active sessions keep their
+connection type, and a retained relay project opens its reconnect controls.
 During a session, the panel shows connection status, invitations and the end-session
 action. Owners can expand **Manage shared access** for membership controls.
 
@@ -46,7 +49,24 @@ when you switch apps or lock the device. Pending edits are saved before suspensi
 and the connection retries when the app runs again. A mobile host must remain open
 and active for other writers to join or synchronize.
 
-For a community server, select **Relay server** and enter your server's address.
+**Getting a relay server:** the community implementation is
+[QF0xB/novalist-sync-server](https://github.com/QF0xB/novalist-sync-server).
+That GitHub project provides the server software; its URL is not an address you
+can connect to from Novalist. Ask the person running your group's server for its
+HTTPS address, or run your own instance:
+
+1. Get the source from the community project and install the .NET 10 SDK.
+2. Follow the upstream [relay setup guide](https://github.com/QF0xB/novalist-sync-server/blob/main/docs/relay.md).
+   Enable relay mode with `Relay__Enabled=true`, configure HTTPS and your chosen
+   sign-in policy, then run `dotnet run --project src/Novalist.Sync.Server` from
+   the server repository. Relay mode does not need PostgreSQL or migrations.
+3. Give the running server's HTTPS base address to the writers who will use it.
+   Novalist expects this address, not a GitHub URL, sign-in-provider URL or
+   `/relay/v1/...` endpoint.
+
+In **Collaborate** or **Settings → Collaboration**, select **Relay server** and
+enter that address. The relay form includes **Community server project** and
+**Relay setup guide** buttons that open these resources in your browser.
 Novalist checks whether that server requires authentication. If it does,
 **Share this project**, **Join shared project** and reconnecting open browser
 sign-in automatically when needed; you can also select **Sign in** beforehand.
@@ -232,7 +252,7 @@ The host must stay online. Ending the host's session stops live collaboration
 for everyone; each participant retains their local copy. Starting a new session
 does not send pending edits from an ended session.
 
-Steam-enabled builds also offer **Steam** as a connection type. Your Steam display
+Steam-enabled builds select **Steam** by default when the runtime is available. Your Steam display
 name is filled in automatically; you can change it before choosing **Host Steam session**.
 Then choose **Invite Steam friends**, select a
 friend and press **Send Steam invitation**. After accepting in Steam, the friend

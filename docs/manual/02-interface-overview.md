@@ -13,8 +13,10 @@ Novalist is organised around **five modes** — Write, Plan, World, Publish and 
 The **toolbar** sits below the native menu, followed by the horizontal **mode rail**: Library, Dashboard, Write, Plan, World, Publish, Series, Extensions and Settings. Below it, the left column holds the mode's views; in Write, these share one column with the binder. The main area sits alongside the scene inspector. The status bar runs along the bottom.
 
 **Collaborate** in the toolbar opens a compact panel to share the current project
-or join an invitation. It shows the connections available on this device and,
-while connected, the session's status and invitation controls. See
+or join an invitation. New connections default to **Direct connection (TCP)**,
+or **Steam** in Steam-enabled builds when its runtime is available. Selecting
+**Relay server** shows where to get the community server software and its setup
+guide. While connected, the panel shows the session's status and invitation controls. See
 [Collaboration](23-settings.md#collaboration).
 
 Desktop controls use the system sans-serif font and flat surfaces. Book covers keep their literary type, and your manuscript font remains controlled by your editor settings. Forms have a bounded width in a maximized window; tables, galleries and canvases use the available space.

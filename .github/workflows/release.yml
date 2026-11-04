@@ -924,9 +924,12 @@ jobs:
           ### Android alpha
 
           Android APKs are early alpha builds for sideloading on Android 13 or newer.
+          Their version matches the desktop release with `-alpha` appended.
           Choose `novalist-android-alpha-arm64.apk` for ARM64 phones/tablets or
           `novalist-android-alpha-x64.apk` for x64 emulators. Each APK has a SHA-256 checksum.
-          External project folders and cloud synchronization are not available in this alpha.
+          Open existing project folders through Android's system folder picker;
+          cloud synchronization depends on the selected folder's provider.
+          Dedicated cloud connections remain in development.
           Android is distributed here only; there is no Google Play release.
           NOTES
 

@@ -18,6 +18,7 @@ async function signIn(h: Harness, server: string): Promise<void> {
     }
   })
   await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
+  await h.page.locator('#set-collaboration-mode').selectOption('hosted')
   await h.page.getByLabel('Server address', { exact: true }).fill(server)
   await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(h.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()

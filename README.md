@@ -39,6 +39,10 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
   invitations, live project structure, scene planning notes and Codex prose with per-writer undo, research and asset synchronization,
   participant cursors, scene badges and named Codex viewing/editing indicators, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
   retained projects, independent project copies, and host controls for session access.
+  New connections default to TCP, or Steam when its runtime is available in a Steam-enabled build.
+  Relay mode links to the [community server](https://github.com/QF0xB/novalist-sync-server)
+  and its [setup guide](https://github.com/QF0xB/novalist-sync-server/blob/main/docs/relay.md);
+  use the HTTPS address of an instance run by you or your server administrator.
   The relay forwards encrypted packets without storing projects or edit history; the host stays online.
   Sign-in renews without replacing the session or invitations, with a bounded grace period for provider outages.
   Connection and traffic limits protect hosts from repeated join requests.
@@ -223,6 +227,8 @@ Novalist is an Electron + React front end over a bundled .NET 10 core process (`
 Building and running the checks requires the .NET 10 SDK and Node.js 22.22.2+ on the 22 LTS line, 24.15+ on the 24 LTS line, or 26+. The renderer tests use Node's TypeScript stripping API, and the collaboration document host uses a headless DOM. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
 The Android 13+ phone/tablet port is under development. **Open folder** uses Android's system folder selector to open an existing project and save back to that folder. Cloud locations depend on the installed provider's folder support and synchronization. **Import backup** restores a desktop ZIP or ZIP-based `.novalist` backup as a new project. Automatic mobile backups wait for idle time and interrupted cloud copies retry later; manual backups remain available in Settings. Build its APK on Windows with `./eng/Build-Android.ps1`; see [Android development](docs/android-development.md) for setup, emulator checks and outstanding beta requirements.
+
+The tagged-release workflow attaches signed Android alpha APKs and SHA-256 checksums to the same [GitHub release](https://github.com/Drommedhar/novalist-official/releases) as the desktop downloads. Choose `novalist-android-alpha-arm64.apk` for ARM64 phones/tablets or the x64 APK for emulators. Android uses the desktop version with `-alpha` appended (for example, `3.6.2-alpha`). These are APK downloads for manual installation; the workflow does not publish to Google Play.
 
 ### Development environment with devenv
 

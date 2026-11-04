@@ -9,6 +9,7 @@ test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local rel
 async function openCollaboration(app: Harness): Promise<void> {
   await dismissTour(app.page)
   await app.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
+  await app.page.locator('#set-collaboration-mode').selectOption('hosted')
 }
 
 async function participants(app: Harness): Promise<string> {
