@@ -154,7 +154,7 @@ function createWindow(): BrowserWindow {
   return win
 }
 
-registerSceneNotesWindow(attachWindowLifecycle)
+registerSceneNotesWindow(attachWindowLifecycle, () => mainWindow)
 
 /**
  * The main window, opened if it is gone and brought forward if it is not.

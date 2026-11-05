@@ -4800,6 +4800,14 @@
     "collapseContext": "Alle zuklappen"
   },
   "sceneChecklist": {
+    "dock": "Szenennotizen andocken",
+    "move": "Szenennotizen verschieben",
+    "float": "Szenennotizen als Fenster öffnen",
+    "choosePosition": "Position für Szenennotizen wählen",
+    "dockTop": "Oben andocken",
+    "dockBottom": "Unten andocken",
+    "dockLeft": "Links andocken",
+    "dockRight": "Rechts andocken",
     "title": "Szenen-Checkliste",
     "notes": "Notizen",
     "properties": "Eigenschaften",

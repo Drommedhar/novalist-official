@@ -94,30 +94,32 @@ export function SceneChecklistView({ context }: { context: SceneNotesContext }):
     save()
   }
 
-  return <section className="scene-checklist" aria-label={t('sceneChecklist.title')}>
+  return <section className={`scene-checklist${editing ? ' is-editing' : ''}`} aria-label={t('sceneChecklist.title')}>
     <div className="scene-checklist-heading">
-      <div><h1>{context.title}</h1><span className="scene-checklist-count">{t('sceneChecklist.progress', progress)}</span></div>
-      <button className="btn-secondary" onClick={() => editing ? finishEditing() : setEditing(true)} disabled={!state.loaded}>
+      <h1>{context.title}</h1>
+      <button className="btn-secondary scene-checklist-edit-toggle" onClick={() => editing ? finishEditing() : setEditing(true)} disabled={!state.loaded}>
         {editing ? <ListChecks size={16} /> : <Pencil size={16} />}
         {t(editing ? 'sceneChecklist.showChecklist' : 'sceneChecklist.edit')}
       </button>
     </div>
+    <span className="scene-checklist-count">{t('sceneChecklist.progress', progress)}</span>
     {state.error && <div className="scene-checklist-error" role="alert">
       <span>{t(state.loaded ? 'sceneChecklist.saveFailed' : 'sceneChecklist.loadFailed')}</span>
       <button className="btn-secondary" onClick={() => state.loaded ? save() : void document.load()}>{t('shell.retry')}</button>
     </div>}
     {!state.loaded ? <p role="status">{t('context.loading')}</p> : <>
       <div className="scene-checklist-scroll">
-        {editing ? <><p className="scene-checklist-hint">{t('sceneChecklist.editHint')}</p>
-          <MarkdownEditor shared={shared} sharedSession={markdownSession} ariaLabel={t('sceneChecklist.edit')} value={state.text.replace(/\r\n/g, '\n')} onChange={(text) => document.update(preserveChecklistLineEndings(document.state.text, text))} onBlur={() => { if (!shared) document.update(normalizeChecklist(document.state.text)); save() }} minRows={10} />
-        </> : <>
+        <div className="scene-checklist-list">
           {!state.text.trim() && <p className="scene-checklist-hint">{t('sceneChecklist.empty')}</p>}
-          <ChecklistBlocks blocks={remaining} onCheck={check} disclosure={disclosure} />
+          <div className="scene-checklist-roots"><ChecklistBlocks blocks={remaining} onCheck={check} disclosure={disclosure} /></div>
           {completed.length > 0 && <details className="scene-checklist-completed" open={expanded.has('completed')} onToggle={(event) => { if (event.target === event.currentTarget) disclosure.toggle('completed', event.currentTarget.open) }}>
             <summary onClick={(event) => { event.preventDefault(); disclosure.toggle('completed', !expanded.has('completed')) }}><CheckCheck size={16} />{t('sceneChecklist.completed', { count: completed.length })}</summary>
-            <ChecklistBlocks blocks={completed} onCheck={check} disclosure={disclosure} />
+            <div className="scene-checklist-roots"><ChecklistBlocks blocks={completed} onCheck={check} disclosure={disclosure} /></div>
           </details>}
-        </>}
+        </div>
+        {editing && <div className="scene-checklist-editor"><p className="scene-checklist-hint">{t('sceneChecklist.editHint')}</p>
+          <MarkdownEditor shared={shared} sharedSession={markdownSession} ariaLabel={t('sceneChecklist.edit')} value={state.text.replace(/\r\n/g, '\n')} onChange={(text) => document.update(preserveChecklistLineEndings(document.state.text, text))} onBlur={() => { if (!shared) document.update(normalizeChecklist(document.state.text)); save() }} minRows={4} />
+        </div>}
       </div>
       {!editing && <form className="scene-checklist-add" onSubmit={(event) => { event.preventDefault(); add() }}>
         <input className="dialog-input" aria-label={t('sceneChecklist.add')} placeholder={t('sceneChecklist.add')} value={newItem} onChange={(event) => setNewItem(event.target.value)} />

@@ -66,7 +66,7 @@ A scene has:
 - **Order** and **chapter** — its place in the manuscript; controlled by drag-and-drop.
 - **File name** — the `.novalist` file on disk, derived from the title at creation.
 - **Word count** — auto-computed, shown next to the scene in the binder.
-- **Synopsis** — editable in [Inspector → Properties](22-context-sidebar.md). **Notes** — editable as a floating [scene checklist](02-interface-overview.md#the-scene-notes-window) from the Notes button or `Ctrl+Shift+N`. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
+- **Synopsis** — editable in [Inspector → Properties](22-context-sidebar.md). **Notes** — editable as a floating or freely docked [scene checklist](02-interface-overview.md#the-scene-notes-window) from the Notes button or `Ctrl+Shift+N`. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
 - **Date / date range** — in-world dates used by the Calendar and Timeline.
 - **Comments** and **footnotes** — anchored to the text. See [Editor](05-editor.md).
 - **Goal** and **outcome** — what the viewpoint character is trying to get here, and what they are left with. Both are editable in **Inspector → Properties** and as columns in the Manuscript view's outliner. Neither is ever guessed from the prose: conflict can be read out of a scene, but a goal nobody stated and an outcome nobody wrote down are precisely what a draft is missing. Read the two columns down the outliner and a scene where nothing happens says so — the outcome repeats the goal, or there is no outcome at all.

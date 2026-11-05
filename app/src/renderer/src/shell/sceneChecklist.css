@@ -8,10 +8,11 @@
 .scene-notes-control:hover, .scene-notes-control[aria-pressed='true'] { background: var(--nl-surface-hover); color: var(--nl-text); }
 .scene-notes-control:focus-visible { outline: var(--nl-rule-width) solid var(--nl-accent); outline-offset: var(--nl-space-tightest); }
 .scene-notes-follow { display: flex; align-items: center; gap: var(--nl-space-sm); padding: 0 var(--nl-space-md) var(--nl-space-sm); border-bottom: var(--nl-rule-width) solid var(--nl-border); font-size: var(--nl-font-caption); color: var(--nl-text-dim); }
-.scene-checklist { display: flex; flex-direction: column; gap: var(--nl-space-md); padding: var(--nl-space-md); flex: 1; min-height: 0; }
-.scene-checklist-heading { display: flex; align-items: flex-start; gap: var(--nl-space-sm); flex-wrap: wrap; }
-.scene-checklist-heading > div { flex: 1; min-width: 0; }
-.scene-checklist-heading h1 { font-size: var(--nl-font-title); line-height: var(--nl-leading-tight); margin: 0 0 var(--nl-space-sm); overflow-wrap: anywhere; }
+.scene-checklist { display: flex; flex-direction: column; gap: var(--nl-space-md); padding: var(--nl-space-md); flex: 1; min-height: 0; min-width: 0; }
+.scene-checklist-heading { display: flex; align-items: center; gap: var(--nl-space-sm); flex-wrap: wrap; }
+.scene-checklist-heading h1 { flex: 1; min-width: 0; font-size: var(--nl-font-title); line-height: var(--nl-leading-tight); margin: 0; overflow-wrap: anywhere; }
+.scene-checklist-edit-toggle { display: inline-flex; align-items: center; justify-content: center; gap: var(--nl-space-sm); flex-shrink: 0; }
+.scene-checklist-edit-toggle svg { flex-shrink: 0; }
 .scene-checklist-count, .scene-checklist-hint { font-size: var(--nl-font-caption); color: var(--nl-text-dim); }
 .scene-checklist-scroll { overflow: auto; min-height: 0; flex: 1; }
 .scene-checklist-item { display: flex; align-items: flex-start; gap: var(--nl-space-sm); padding: var(--nl-space-sm) 0; font-size: var(--nl-font-body); line-height: var(--nl-leading-body); }
@@ -32,4 +33,33 @@
 .scene-checklist-add { display: flex; gap: var(--nl-space-sm); }
 .scene-checklist-add input { flex: 1; min-width: 0; }
 .scene-checklist-error { display: flex; align-items: center; gap: var(--nl-space-sm); padding: var(--nl-space-md); color: var(--nl-text); background: var(--nl-surface-card); border: var(--nl-rule-width) solid var(--nl-border); border-radius: var(--nl-radius-sm); font-size: var(--nl-font-caption); }
-.scene-checklist .md-editor { min-height: 100%; }
+.scene-checklist.is-editing .scene-checklist-list { display: none; }
+.scene-checklist-editor { min-width: 0; }
+.scene-notes-window, .scene-notes-panel { container: scene-notes / size; }
+.scene-notes-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow: hidden; background: var(--nl-surface-sidebar); color: var(--nl-text); }
+.scene-notes-panel .scene-notes-titlebar { -webkit-app-region: no-drag; }
+.scene-notes-title { min-width: 0; }
+.scene-notes-title svg { flex-shrink: 0; }
+.scene-notes-titlebar, .scene-notes-follow, .scene-checklist-heading, .scene-checklist-add { flex-shrink: 0; }
+
+/* Container geometry applies equally to a resized window or any nested pane. */
+@container scene-notes (min-width: 36rem) and (min-aspect-ratio: 3/2) {
+  .scene-checklist-roots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--nl-notes-card-width)), 1fr)); align-items: start; gap: var(--nl-space-md); }
+  .scene-checklist-roots > .scene-checklist-item { min-width: 0; border: var(--nl-rule-width) solid var(--nl-border); border-radius: var(--nl-radius-sm); padding: var(--nl-space-sm); }
+  .scene-checklist-roots > .scene-checklist-prose { grid-column: 1 / -1; }
+  .scene-checklist.is-editing .scene-checklist-list { display: block; }
+  .scene-checklist-editor { margin-top: var(--nl-space-md); }
+  .scene-notes-follow { padding-bottom: var(--nl-space-tightest); }
+  .scene-notes-titlebar { padding-block: var(--nl-space-tightest); }
+  .scene-checklist { gap: var(--nl-space-sm); }
+}
+
+.pane-leaf:has(> .notes-dock-targets) { position: relative; }
+.notes-dock-targets { position: absolute; inset: 0; z-index: 10; display: grid; grid-template: auto 1fr auto / 1fr auto 1fr; gap: var(--nl-space-sm); padding: var(--nl-space-md); background: var(--nl-surface-window); }
+.notes-dock-target { border: var(--nl-rule-width) dashed var(--nl-accent); border-radius: var(--nl-radius-md); color: var(--nl-text); background: var(--nl-surface-card); padding: var(--nl-space-md); font-size: var(--nl-font-ui); cursor: pointer; }
+.notes-dock-target:hover, .notes-dock-target:focus-visible { background: var(--nl-surface-hover); outline: var(--nl-rule-width) solid var(--nl-accent); }
+.notes-dock-top { grid-area: 1 / 1 / 2 / 4; }
+.notes-dock-left { grid-area: 2 / 1; }
+.notes-dock-right { grid-area: 2 / 3; }
+.notes-dock-bottom { grid-area: 3 / 1 / 4 / 4; }
+.notes-dock-cancel { grid-area: 2 / 2; align-self: center; }

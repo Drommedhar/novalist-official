@@ -4792,6 +4792,14 @@
     "collapseContext": "Collapse all"
   },
   "sceneChecklist": {
+    "dock": "Dock scene notes",
+    "move": "Move scene notes",
+    "float": "Float scene notes",
+    "choosePosition": "Choose where to dock scene notes",
+    "dockTop": "Dock above",
+    "dockBottom": "Dock below",
+    "dockLeft": "Dock left",
+    "dockRight": "Dock right",
     "title": "Scene checklist",
     "notes": "Notes",
     "properties": "Properties",

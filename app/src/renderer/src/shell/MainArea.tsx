@@ -44,6 +44,9 @@ import { AboutView } from '../views/about/AboutView'
 import { useExtensionsStore } from '../stores/extensionsStore'
 import { HostBridgeOverlays } from './HostBridgeOverlays'
 import { useContentTransition } from './useContentTransition'
+import { useNotesDocking } from './sceneNotesDocking'
+import { SceneNotesPanel } from './SceneNotesPanel'
+import { NotesDockTargets } from './NotesDockTargets'
 
 /** Wraps the routed main-area content with the always-present extension-host UI
  * surfaces (toasts, busy-progress, wizard). The overlays read their state from
@@ -83,7 +86,10 @@ function PaneTree({
 }): React.JSX.Element {
   const activePaneId = useShellStore((s) => s.activePaneId)
   const setActivePane = useShellStore((s) => s.setActivePane)
-  const only = useShellStore((s) => paneLeaves(s.panes).length < 2)
+  const docked = useNotesDocking((s) => s.state.docked && !s.released)
+  const visible = useShellStore((s) => s.notesDockVisible)
+  const showNotes = docked && visible
+  const only = useShellStore((s) => paneLeaves(s.panes).filter((pane) => pane.view !== 'sceneNotes' || showNotes).length < 2)
   const leafRef = useRef<HTMLDivElement>(null)
   const extView = useShellStore((s) => s.extView)
   const focused = useShellStore((s) => s.focusMode && s.mainView === 'write' && !s.extView)
@@ -105,16 +111,21 @@ function PaneTree({
   }, [node.kind === 'leaf' ? node.view : null, extView])
 
   if (node.kind === 'split') {
+    // Keep content ancestry stable when notes hide or float. Rebuilding a
+    // collapsed tree destroys editor iframes, their selection and undo history,
+    // and text that has not yet reached the debounced change reporter.
+    const shown = node.children.map((child) => paneLeaves(child).some((pane) => pane.view !== 'sceneNotes' || showNotes))
+    const total = node.sizes.reduce((sum, size, index) => sum + (shown[index] ? size : 0), 0)
     return (
       <div className={`pane-split ${node.direction}`}>
         {node.children.map((child, i) => (
           <Fragment key={child.id}>
             {/* Between the slots rather than inside one, so a drag belongs to
                 the boundary it moves rather than to either neighbour. */}
-            {i > 0 && <PaneDivider split={node} index={i} />}
+            {shown[i] && shown.slice(0, i).some(Boolean) && <PaneDivider split={node} index={i} />}
             <div
               className={`pane-slot${focused && !findPane(child, activePaneId) ? ' focus-hidden' : ''}`}
-              style={{ flexBasis: `${node.sizes[i] ?? 100 / node.children.length}%` }}
+              style={{ flexBasis: `${(node.sizes[i] ?? 0) / (total || 100) * 100}%`, display: shown[i] ? undefined : 'none' }}
             >
               <PaneTree node={child} headers={headers} />
             </div>
@@ -123,6 +134,8 @@ function PaneTree({
       </div>
     )
   }
+
+  if (node.view === 'sceneNotes') return <div className="pane-leaf" data-view="sceneNotes">{showNotes && <SceneNotesPanel />}</div>
 
   return (
     <div
@@ -142,6 +155,7 @@ function PaneTree({
       <DesktopViewFrame view={node.view}>
         <MainAreaContent view={node.view} paneId={node.id} />
       </DesktopViewFrame>
+      <NotesDockTargets paneId={node.id} />
     </div>
   )
 }

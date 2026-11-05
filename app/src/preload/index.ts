@@ -198,6 +198,23 @@ contextBridge.exposeInMainWorld('novalist', {
   sceneNotesWindowState(): Promise<SceneNotesWindowState> { return ipcRenderer.invoke('novalist:notes-state') },
   toggleSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-toggle') },
   hideSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-hide') },
+  requestSceneNotesDock(): Promise<void> { return ipcRenderer.invoke('novalist:notes-request-dock') },
+  dockSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-dock') },
+  floatSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-float') },
+  followSceneNotes(follow: boolean): Promise<void> { return ipcRenderer.invoke('novalist:notes-follow', follow) },
+  onSceneNotesDockRequest(handler: () => void): () => void {
+    const listener = (): void => handler()
+    ipcRenderer.on('novalist:notes-dock-request', listener)
+    return () => { ipcRenderer.removeListener('novalist:notes-dock-request', listener) }
+  },
+  onSceneNotesRelease(handler: () => Promise<void>): () => void {
+    const listener = async (_event: Electron.IpcRendererEvent, token: number): Promise<void> => {
+      try { await handler(); ipcRenderer.send('novalist:notes-released', token, true) }
+      catch { ipcRenderer.send('novalist:notes-released', token, false) }
+    }
+    ipcRenderer.on('novalist:notes-release', listener)
+    return () => { ipcRenderer.removeListener('novalist:notes-release', listener) }
+  },
   pinSceneNotes(pinned: boolean): Promise<void> { return ipcRenderer.invoke('novalist:notes-pin', pinned) },
   onSceneNotesState(handler: (state: SceneNotesWindowState) => void): () => void {
     const listener = (_event: Electron.IpcRendererEvent, state: SceneNotesWindowState): void => handler(state)

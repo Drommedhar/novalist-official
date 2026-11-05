@@ -6,7 +6,7 @@ const IDLE_MS = 60_000
 export function startIdleBackups(): () => void {
   let stopped = false
   let trigger = 'open'
-  let timer: ReturnType<typeof setTimeout>
+  let timer: number | undefined
   let pending: AbortController | null = null
 
   const schedule = (): void => {

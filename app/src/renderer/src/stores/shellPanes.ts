@@ -1,4 +1,4 @@
-import { type MainView, type PaneNode, type SavedLayout } from './shellTypes'
+import { type MainView, type PaneView, type DockEdge, type PaneNode, type SavedLayout } from './shellTypes'
 
 let paneSeq = 0
 
@@ -7,7 +7,7 @@ function paneId(): string {
   return `pane-${paneSeq}`
 }
 
-export function newLeaf(view: MainView): PaneNode {
+export function newLeaf(view: PaneView): PaneNode {
   return { kind: 'leaf', id: paneId(), view }
 }
 
@@ -83,7 +83,43 @@ export function paneLeaves(node: PaneNode): Extract<PaneNode, { kind: 'leaf' }>[
  * window.
  */
 export function anyPaneShows(node: PaneNode, views: MainView[]): boolean {
-  return paneLeaves(node).some((leaf) => views.includes(leaf.view))
+  return paneLeaves(node).some((leaf) => leaf.view !== 'sceneNotes' && views.includes(leaf.view))
+}
+
+/** Remove auxiliary notes from the rendered tree while keeping its saved slot. */
+export function withoutNotesPane(node: PaneNode): PaneNode | null {
+  if (node.kind === 'leaf') return node.view === 'sceneNotes' ? null : node
+  const remaining = node.children.map((child, index) => ({ child: withoutNotesPane(child), size: node.sizes[index] }))
+    .filter((entry): entry is { child: PaneNode; size: number } => entry.child !== null)
+  const children = remaining.map((entry) => entry.child)
+  if (!children.length) return null
+  if (children.length === 1) return children[0]
+  const total = remaining.reduce((sum, entry) => sum + entry.size, 0)
+  return { ...node, children, sizes: remaining.map((entry) => entry.size / total * 100) }
+}
+
+export function canClosePane(node: PaneNode, id: string): boolean {
+  const pane = findPane(node, id)
+  if (!pane || pane.kind !== 'leaf') return false
+  const content = paneLeaves(node).filter((leaf) => leaf.view !== 'sceneNotes')
+  return content.length > (pane.view === 'sceneNotes' ? 0 : 1)
+}
+
+/** Place the same notes leaf on any edge of a content pane, preserving its content. */
+export function dockNotesPane(node: PaneNode, targetId: string, edge: DockEdge): PaneNode {
+  const target = findPane(node, targetId)
+  if (!target || target.kind !== 'leaf' || target.view === 'sceneNotes') return node
+  const notes = paneLeaves(node).find((leaf) => leaf.view === 'sceneNotes') ?? newLeaf('sceneNotes')
+  const root = withoutNotesPane(node)!
+  const insert = (current: PaneNode): PaneNode => {
+    if (current.id === targetId) {
+      const before = edge === 'left' || edge === 'top'
+      return { kind: 'split', id: paneId(), direction: edge === 'left' || edge === 'right' ? 'row' : 'column',
+        children: before ? [notes, current] : [current, notes], sizes: before ? [30, 70] : [70, 30] }
+    }
+    return current.kind === 'leaf' ? current : { ...current, children: current.children.map(insert) }
+  }
+  return insert(root)
 }
 
 /**

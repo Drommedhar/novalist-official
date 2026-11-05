@@ -12,6 +12,8 @@ export interface SceneNotesWindowState {
   context: SceneNotesContext | null
   visible: boolean
   pinned: boolean
+  docked: boolean
+  follow: boolean
 }
 
 export interface NotesBounds { x: number; y: number; width: number; height: number }

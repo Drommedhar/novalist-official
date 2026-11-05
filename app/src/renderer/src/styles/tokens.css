@@ -79,6 +79,7 @@
   --nl-space-lg: 18px;
   --nl-space-xl: 24px;
   --nl-space-xxl: 32px;
+  --nl-notes-card-width: 18rem;
 
   /* Corner radius. The brand fixes three of these - button, card and pill; the
      remaining two interpolate so nested controls still step down cleanly. */

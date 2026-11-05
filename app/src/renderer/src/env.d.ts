@@ -161,6 +161,12 @@ interface Window {
     sceneNotesWindowState?(): Promise<import('../../shared/sceneNotesProtocol').SceneNotesWindowState>
     toggleSceneNotes?(): Promise<void>
     hideSceneNotes?(): Promise<void>
+    requestSceneNotesDock?(): Promise<void>
+    dockSceneNotes?(): Promise<void>
+    floatSceneNotes?(): Promise<void>
+    followSceneNotes?(follow: boolean): Promise<void>
+    onSceneNotesDockRequest?(handler: () => void): () => void
+    onSceneNotesRelease?(handler: () => Promise<void>): () => void
     pinSceneNotes?(pinned: boolean): Promise<void>
     onSceneNotesState?(handler: (state: import('../../shared/sceneNotesProtocol').SceneNotesWindowState) => void): () => void
     checkAppUpdate(): Promise<AppUpdate | null>

@@ -21,6 +21,7 @@ import { MainArea } from './MainArea'
 import { MobileShell } from './MobileShell'
 import { MobileWelcome } from './MobileWelcome'
 import { useSceneNotesContext } from './useSceneNotesContext'
+import { useSceneNotesDocking } from './sceneNotesDocking'
 
 import { StartScreen } from './ProjectLibrary'
 import { FocusMode } from './FocusMode'
@@ -42,6 +43,7 @@ import '../styles/desktop-views.css'
 
 export function AppShell(): React.JSX.Element {
   useSceneNotesContext()
+  useSceneNotesDocking()
   const { t } = useTranslation()
   const closeStage = useWorkspaceWindow()
   useBackupScheduler()

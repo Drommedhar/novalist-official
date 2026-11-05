@@ -4834,6 +4834,14 @@
     "collapseContext": "全部折叠"
   },
   "sceneChecklist": {
+    "dock": "停靠场景笔记",
+    "move": "移动场景笔记",
+    "float": "浮动场景笔记",
+    "choosePosition": "选择场景笔记停靠位置",
+    "dockTop": "停靠到上方",
+    "dockBottom": "停靠到下方",
+    "dockLeft": "停靠到左侧",
+    "dockRight": "停靠到右侧",
     "title": "场景清单",
     "notes": "笔记",
     "properties": "属性",

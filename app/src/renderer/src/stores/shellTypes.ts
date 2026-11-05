@@ -84,8 +84,10 @@ export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'set
  * actually do: three panes down the left and one tall one on the right is a
  * shape a flat list cannot hold.
  */
+export type PaneView = MainView | 'sceneNotes'
+export type DockEdge = 'left' | 'right' | 'top' | 'bottom'
 export type PaneNode =
-  | { kind: 'leaf'; id: string; view: MainView }
+  | { kind: 'leaf'; id: string; view: PaneView }
   | { kind: 'split'; id: string; direction: 'row' | 'column'; children: PaneNode[]; sizes: number[] }
 
 /** A layout the writer named and can come back to. */

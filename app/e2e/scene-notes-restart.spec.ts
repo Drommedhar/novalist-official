@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
+import type { PaneNode } from '../src/renderer/src/stores/shellTypes'
 
 async function recordMainErrors(h: Harness): Promise<string> {
   const path = join(h.workDir, 'main-errors.log')
@@ -106,3 +107,69 @@ for (const action of ['quit', 'close-main'] as const) for (const pinned of [true
     } finally { await h.close().catch(() => {}) }
   })
 }
+
+
+test('docked notes remember their nested position, resized proportions and visibility across app restarts', async () => {
+  let h = await launchApp('nl-notes-dock-restart-')
+  try {
+    const book = await seedBook(h, { Opening: ['Arrival'] })
+    const chapter = book.chapters[0]
+    await dismissTour(h.page)
+    await h.rpc('scenes/setNotes', [chapter.guid, chapter.scenes[0].id, '- Keep this goal docked'])
+    await h.page.evaluate(async (chapter) => {
+      const shell = window.novalistStores.shell.getState()
+      shell.setMainView('write')
+      shell.splitActivePane('row')
+      shell.setPaneView(window.novalistStores.shell.getState().activePaneId, 'research')
+      await window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id)
+    }, chapter)
+    const floating = await openNotes(h)
+    await floating.getByRole('button', { name: 'Dock scene notes', exact: true }).click()
+    await h.page.getByRole('button', { name: 'Dock above', exact: true }).last().click()
+    await expect(h.page.locator('.scene-notes-panel')).toBeVisible()
+    await h.page.evaluate(() => {
+      const shell = window.novalistStores.shell.getState()
+      if (shell.panes.kind !== 'split') throw new Error('Expected outer split')
+      shell.setPaneSizes(shell.panes.id, [35, 65])
+      const nested = shell.panes.children[1]
+      if (nested.kind !== 'split') throw new Error('Expected nested notes split')
+      shell.setPaneSizes(nested.id, [42, 58])
+    })
+    const arrangement = () => h.page.evaluate(() => {
+      const shape = (pane: PaneNode): unknown => pane.kind === 'leaf' ? pane.view === 'sceneNotes' ? 'notes' : 'content'
+        : { direction: pane.direction, sizes: pane.sizes, children: pane.children.map(shape) }
+      return shape(window.novalistStores.shell.getState().panes)
+    })
+    const saved = await arrangement()
+    const projectPath = await h.page.evaluate(() => window.novalistStores.project.getState().projectPath)
+    const workDir = h.workDir
+    const restart = async (): Promise<void> => {
+      await h.close()
+      h = await launchApp('nl-notes-dock-restart-', {}, workDir)
+      await h.rpc('project/open', [projectPath])
+      await h.page.evaluate((chapter) => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id), chapter)
+    }
+    await restart()
+    await expect(h.page.locator('.scene-notes-panel')).toBeVisible()
+    await expect(h.page.getByRole('checkbox', { name: 'Keep this goal docked', exact: true })).toBeVisible()
+    expect(await arrangement()).toEqual(saved)
+    expect(await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().filter(win => win.webContents.getURL().includes('sceneNotes=')).length)).toBe(0)
+    await h.page.getByRole('button', { name: 'Hide scene notes', exact: true }).click()
+    await restart()
+    await expect(h.page.locator('.scene-notes-panel')).toHaveCount(0)
+    expect(await arrangement()).toEqual(saved)
+    await h.page.locator('.toolbar [data-command="app.toggleSceneNotes"]').click()
+    await expect(h.page.locator('.scene-notes-panel')).toBeVisible()
+    expect(await arrangement()).toEqual(saved)
+    const opened = h.app.waitForEvent('window')
+    await h.page.getByRole('button', { name: 'Float scene notes', exact: true }).click()
+    await opened
+    await restart()
+    await expect(h.page.locator('.scene-notes-panel')).toHaveCount(0)
+    const reopened = h.app.waitForEvent('window')
+    await h.page.locator('.toolbar [data-command="app.toggleSceneNotes"]').click()
+    const notes = await reopened
+    await expect(notes.getByRole('checkbox', { name: 'Keep this goal docked', exact: true })).toBeVisible()
+    expect(await h.page.evaluate(async () => (await window.novalist.sceneNotesWindowState?.())?.docked)).toBe(false)
+  } finally { await h.close().catch(() => {}) }
+})
