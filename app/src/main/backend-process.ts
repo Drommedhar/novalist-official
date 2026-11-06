@@ -90,6 +90,12 @@ export class BackendProcess {
     const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'], env })
     this.child = child
 
+    child.stdin.on('error', (error) => {
+      if (this.child !== child || this.disposed) return
+      console.error('[backend] input pipe failed; restarting connection:', error.message)
+      child.kill()
+    })
+
     child.on('error', (error) => {
       console.error(`[backend] failed to start ${exe}:`, error.message)
       this.child = null

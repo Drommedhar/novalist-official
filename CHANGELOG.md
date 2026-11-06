@@ -33,6 +33,7 @@ could encounter in a previously released version.
 
 ### Fixed
 
+- The app no longer freezes with a JavaScript error when its background service restarts during editing.
 - Closing the app no longer intermittently fails while shutting down extensions.
 - Creating a Codex entry with Enter closes the dialog without opening it again.
 - Saved scene synopses remain visible when returning to a scene or reopening its properties.
