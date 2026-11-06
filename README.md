@@ -235,6 +235,26 @@ The tagged-release workflow attaches signed Android alpha APKs and SHA-256 check
 With [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/)
 installed, enter the pinned development environment from the repository root:
 
+On Linux, build and start the current checkout through the Nix package:
+
+```bash
+devenv shell build
+devenv shell run
+```
+
+`build` prints the immutable package path without opening a window. `run` builds
+if needed, reuses cached results, and launches that package. It uses the same
+packaging stages as the nixpkgs-style recipe: Node.js 24, Electron 44, a release
+.NET 10 backend, bundled renderer assets, and an FHS-wrapped backend. It does not
+depend on `app/node_modules` or a manually built debug backend. The source includes
+current local edits but excludes build output and development caches.
+
+ROCm libraries and MIOpen GPU databases are excluded by default. The package's
+`withRocm` argument enables them explicitly when testing AMD speech acceleration.
+The normal client and context-selection tests do not need those downloads.
+
+For individual checks or IDE development, enter the shell:
+
 ```bash
 devenv shell
 # Alternatively, with direnv installed: direnv allow
@@ -243,18 +263,23 @@ dotnet build novalist-official.sln
 dotnet test novalist-official.sln --no-build
 npm --prefix app ci
 npm --prefix app run typecheck
-npm --prefix app run dev
 ```
 
-The environment provides the .NET 10 SDK, Node.js 22 with npm, Git and Python
+The environment provides the .NET 10 SDK, Node.js 24 with npm, Git and Python
 for the repository's tooling. On Linux it also supplies a Nix-patched Electron
-42 binary and skips npm's Electron download. The Electron major version in
-`devenv.nix` should follow `app/package.json`. On macOS, npm installs Electron
-normally.
+44 binary and skips npm's Electron download, matching the Linux package recipe.
+The npm development dependency in `app/package.json` is not downloaded on Linux.
+On macOS, npm installs Electron normally.
 
-On Linux, run `npm run dev` inside `devenv shell` (or through direnv): the shell
-sets both Electron's distribution override and electron-vite's executable
-override so the development launcher uses the Nix binary.
+For optional hot-reload development, run `npm --prefix app run dev` inside
+`devenv shell` after installing app dependencies and building the debug backend.
+This is a separate development-server path; use `devenv shell run` to test the
+packaged application and its runtime environment.
+
+The package's npm dependency hash lives in `nix/package.nix`; its NuGet dependency
+manifest is `nix/deps.json`. Update these when the corresponding dependencies
+change. The backend's `fetch-deps` helper is exposed as
+`outputs.novalist.backend.fetch-deps` for regenerating the NuGet manifest.
 
 For Rider, select `.devenv/state/dotnet` as the .NET CLI directory after entering
 the shell once. Keep `devenv.lock` committed so contributors resolve the same
