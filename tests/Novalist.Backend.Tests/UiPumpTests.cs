@@ -140,4 +140,55 @@ public class UiPumpTests
         pump.Dispose();
         pump.Dispose();
     }
+
+    [Fact]
+    public void Dispose_WhileLastActionCompletes_DoesNotRaceQueueCleanup()
+    {
+        for (var i = 0; i < 10_000; i++)
+        {
+            using var entered = new ManualResetEventSlim();
+            using var release = new ManualResetEventSlim();
+            using var pump = new UiPump();
+            pump.Post(() =>
+            {
+                entered.Set();
+                release.Wait(TimeSpan.FromSeconds(5));
+            });
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(5)));
+            release.Set();
+            pump.Dispose();
+        }
+    }
+
+    [Fact]
+    public void Dispose_DrainsQueuedActions()
+    {
+        using var pump = new UiPump();
+        var completed = 0;
+        for (var i = 0; i < 100; i++)
+            pump.Post(() => completed++);
+
+        pump.Dispose();
+
+        Assert.Equal(100, completed);
+    }
+
+    [Fact]
+    public async Task Dispose_OnPumpThread_DrainsQueuedActions()
+    {
+        using var pump = new UiPump();
+        using var release = new ManualResetEventSlim();
+        var drained = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var shutdown = pump.InvokeAsync(() =>
+        {
+            if (!release.Wait(TimeSpan.FromSeconds(5)))
+                throw new TimeoutException("Queued actions were not released.");
+            pump.Dispose();
+        });
+        pump.Post(() => drained.SetResult(pump.CheckAccess()));
+        release.Set();
+
+        await shutdown.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(await drained.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
 }

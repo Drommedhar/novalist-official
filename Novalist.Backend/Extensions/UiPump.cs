@@ -19,6 +19,7 @@ namespace Novalist.Backend.Extensions;
 public sealed class UiPump : IDisposable
 {
     private readonly BlockingCollection<Action> _queue = new();
+    private readonly Lock _shutdownLock = new();
     private readonly Thread _thread;
     private int _disposed;
 
@@ -45,7 +46,9 @@ public sealed class UiPump : IDisposable
         }
         finally
         {
-            _queue.Dispose();
+            // CompleteAdding still reads the queue after marking it complete.
+            lock (_shutdownLock)
+                _queue.Dispose();
         }
     }
 
@@ -124,7 +127,8 @@ public sealed class UiPump : IDisposable
     {
         if (Interlocked.Exchange(ref _disposed, 1) == 1)
             return;
-        _queue.CompleteAdding();
+        lock (_shutdownLock)
+            _queue.CompleteAdding();
         if (!CheckAccess())
             _thread.Join();
     }
