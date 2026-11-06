@@ -1,4 +1,5 @@
 import { expect, _electron as electron, type ElectronApplication, type Page } from '@playwright/test'
+import { execFile } from 'node:child_process'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -24,6 +25,21 @@ export type Harness = {
 }
 
 export async function closeTestApp(app: ElectronApplication): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const closed = await Promise.race([
+      closeResponsiveApp(app).then(() => true),
+      new Promise<boolean>((resolve) => { timer = setTimeout(() => resolve(false), 10_000) })
+    ])
+    // Either inspector connection can stop responding after a failed test.
+    if (!closed) {
+      await terminateTestProcess(app)
+      throw new Error('Electron did not close within 10 seconds; its process tree was terminated.')
+    }
+  } finally { clearTimeout(timer) }
+}
+
+async function closeResponsiveApp(app: ElectronApplication): Promise<void> {
   // A spec can deliberately leave a save failure or conflict unresolved.
   // Dispose its temporary windows without invoking the writer's close guard;
   // app.close still lets the main process shut down its backend normally.
@@ -41,29 +57,38 @@ export async function closeTestApp(app: ElectronApplication): Promise<void> {
   await app.close()
 }
 
-async function terminateFailedStartup(app: ElectronApplication): Promise<void> {
+async function terminateTestProcess(app: ElectronApplication): Promise<void> {
   const child = app.process()
-  if (child.exitCode !== null || child.signalCode !== null) return
+  if ((child.exitCode !== null || child.signalCode !== null) && child.stdio.every((stream) => !stream || stream.destroyed)) return
+  const pid = child.pid
+  if (!pid) throw new Error('The Electron test process has no PID.')
   await new Promise<void>((resolve, reject) => {
-    let timer: ReturnType<typeof setTimeout>
+    let timer: ReturnType<typeof setTimeout> | undefined
     const finish = (error?: Error): void => {
       clearTimeout(timer)
-      child.removeListener('exit', exited)
+      child.removeListener('close', exited)
       child.removeListener('error', failed)
       if (error) reject(error)
       else resolve()
     }
     const exited = (): void => finish()
     const failed = (error: Error): void => finish(error)
-    child.once('exit', exited)
+    child.once('close', exited)
     child.once('error', failed)
-    // Startup may be blocked in native code. Neither evaluate nor app.close
+    // Electron may be blocked in native code. Neither evaluate nor app.close
     // can be relied on until the main thread responds. Only signal this
-    // launch's child, and await its exit before returning control to the spec.
+    // launch's process tree, and wait for its stdio to close as well as exit.
+    if (process.platform === 'win32') {
+      execFile('taskkill', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, timeout: 5_000 }, (error) => {
+        if (error) finish(error)
+      })
+      return
+    }
+    // Playwright launches POSIX Electron in its own detached process group.
     timer = setTimeout(() => {
-      try { child.kill('SIGKILL') } catch (error) { finish(error as Error) }
+      try { process.kill(-pid, 'SIGKILL') } catch (error) { finish(error as Error) }
     }, 5_000)
-    try { child.kill('SIGTERM') } catch (error) { finish(error as Error) }
+    try { process.kill(-pid, 'SIGTERM') } catch (error) { finish(error as Error) }
   })
 }
 
@@ -123,7 +148,7 @@ export async function launchApp(
     // Until readiness succeeds the caller has no handle to dispose. In
     // particular, a firstWindow timeout otherwise leaves a native guest alive
     // and can stall Playwright's entire worker teardown.
-    await terminateFailedStartup(app).catch(() => {})
+    await terminateTestProcess(app).catch(() => {})
     throw error
   }
 }
