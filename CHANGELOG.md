@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.7.0] - 2026-11-06
+
 ### Added
 
 - **Collaboration** — share or join projects from the top bar over direct TCP or an encrypted relay, with private single-use invitations, optional browser sign-in and relay setup guidance. The host stays online while writers collaborate. Join into a new folder or reuse an existing copy, with transfer progress and cancellation. Books, drafts, scenes, Codex entries, research and assets synchronize. Edit scene, Manuscript and Codex prose together with participant cursors and individual undo; presence badges and field locks show who is working where. Conflicting edits are kept in recovery copies. Continue writing prose through connection interruptions, reconnect or leave with a local copy. Hosts can remove writers or end the session. Optional Steam builds support friend invitations and use Steam for application updates while retaining extension updates.
@@ -1866,7 +1872,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/Drommedhar/novalist-official/compare/v3.6.2...v3.7.0
 [3.6.2]: https://github.com/Drommedhar/novalist-official/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/Drommedhar/novalist-official/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...v3.6.0
