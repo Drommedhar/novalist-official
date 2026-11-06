@@ -1,26 +1,7 @@
-import { expect, test, type Locator } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { join } from 'node:path'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
-
-async function releaseFocusedField(harness: Harness, input: Locator): Promise<void> {
-  const release = await harness.page.evaluateHandle(() => {
-    const request = window.novalistRpc.request.bind(window.novalistRpc)
-    const observed = { completed: false }
-    window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
-      const result = await request<T>(method, params)
-      if (method === 'collaboration/releaseField') {
-        observed.completed = true
-        window.novalistRpc.request = request
-      }
-      return result
-    }
-    return observed
-  })
-  try {
-    await input.blur()
-    await expect.poll(() => release.evaluate(observed => observed.completed)).toBe(true)
-  } finally { await release.dispose() }
-}
+import { releaseFocusedField } from './fieldRelease'
 
 test('Research metadata locks, reciprocal links and file-to-prose transitions work between writers', async () => {
   const participants: Harness[] = []
@@ -158,7 +139,7 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     await expect(guest.page.getByRole('region', { name: 'Notifications' }).getByRole('status')
       .filter({ hasText: /Owner is editing this field\.|This field is locked\./ })).toBeVisible()
     await expect(guest.page.getByRole('button', { name: 'Keep as research note', exact: true })).toBeVisible()
-    await releaseFocusedField(owner, ownerTag)
+    await releaseFocusedField(owner.page, ownerTag)
     await guest.page.getByRole('button', { name: 'Keep as research note', exact: true }).click()
     await expect(owner.page.getByRole('button', { name: 'Keep as research note', exact: true })).toHaveCount(0)
     await expect(owner.page.locator('.research-tag').filter({ hasText: 'History' })).toHaveCount(1)

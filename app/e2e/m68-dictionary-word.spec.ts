@@ -33,14 +33,18 @@ test('a word taught from the prose lands in the writer own dictionary', async ()
     // Nothing was learned before the writer asked for it.
     expect(await h.rpc<string[]>('spell/words')).toEqual([])
 
-    // Keep the synthetic menu event and spelling response in one browser task:
-    // a native right-click followed by a separate evaluate can lose the menu
-    // before the fixture response arrives. Anchor it to visible prose so the
-    // dictionary action remains reachable after the editor's initial layout.
+    // Exercise revealing the prose before opening its menu. A scroll event
+    // queued by scrollIntoViewIfNeeded must not dismiss the new menu.
     const paragraph = editor.locator('p').filter({ hasText: 'The Aelthorn banner burned.' }).first()
+    await editor.evaluate(element => {
+      const wrapper = element.parentElement!
+      wrapper.scrollTop = wrapper.scrollHeight
+    })
     await paragraph.scrollIntoViewIfNeeded()
-    await paragraph.evaluate((element) => {
+    await paragraph.evaluate(async (element) => {
       const doc = element.ownerDocument
+      // Browsers deliver pending scroll events before animation callbacks.
+      await new Promise<void>(resolve => doc.defaultView!.requestAnimationFrame(() => resolve()))
       const rect = element.getBoundingClientRect()
       element.dispatchEvent(new MouseEvent('contextmenu', {
         bubbles: true,
@@ -48,6 +52,7 @@ test('a word taught from the prose lands in the writer own dictionary', async ()
         clientX: rect.left + 30,
         clientY: rect.top + rect.height / 2
       }))
+      // Deliver spelling suggestions in the same task as opening the menu.
       ;(
         doc.defaultView as unknown as {
           setSpellingSuggestions(word: string, suggestions: string[]): void

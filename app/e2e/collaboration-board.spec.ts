@@ -1,6 +1,7 @@
 import { expect, test, type Locator } from '@playwright/test'
 import { join } from 'node:path'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
+import { releaseFocusedField } from './fieldRelease'
 
 async function drop(card: Locator, target: Locator): Promise<void> {
   const fire = (element: Element, type: string): void => {
@@ -49,7 +50,7 @@ test('Board POV and property drops honor named focus locks and synchronize after
     await drop(card, target)
     await expect(owner.page.getByRole('status').filter({ hasText: /^Guest is editing this field\.$/ })).toBeVisible()
     await expect(target.locator('.board-card')).toHaveCount(1)
-    await pov.blur()
+    await releaseFocusedField(guest.page, pov)
     await expect(pov).toHaveAttribute('readonly')
     await drop(card, target)
     await expect(target.locator('.board-card')).toHaveCount(2)
@@ -62,7 +63,7 @@ test('Board POV and property drops honor named focus locks and synchronize after
     await drop(card, sunny)
     await expect(sunny.locator('.board-card')).toHaveCount(0)
     await expect(weather).toHaveValue('Fog')
-    await weather.blur()
+    await releaseFocusedField(guest.page, weather)
     await expect(weather).toHaveAttribute('aria-disabled', 'true')
     await drop(card, sunny)
     await expect(sunny.locator('.board-card')).toHaveCount(1)
