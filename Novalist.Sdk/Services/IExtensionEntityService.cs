@@ -47,6 +47,10 @@ public interface IExtensionEntityService
     /// withholding, which the extension has no way to reconstruct on its own.
     /// A writer who marks an entry "never" means it, and an extension that
     /// assembles context from the raw lists breaks that promise.
+    /// Pass empty chapter and scene ids for an explicit context picker: this
+    /// returns all named entries except "never", without requiring scene mentions.
+    /// Withheld sections are removed in both modes. The caller must select the
+    /// requested entries from this allowed set rather than sending the full roster.
     /// </summary>
     /// <param name="chapterGuid">Chapter of the scene the context is for.</param>
     /// <param name="sceneId">Scene the context is for. Entries the scene does

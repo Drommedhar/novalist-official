@@ -43,6 +43,7 @@ could encounter in a previously released version.
 - Inspector context sections appear together once loaded instead of arriving separately.
 - Switching away from an untouched scene no longer triggers unnecessary saves and delays.
 - Changing Manuscript filters preserves pending prose edits, including typing during a slow reload. Saved scene lists with no matches show an empty result instead of the whole book.
+- AI Assistant context selection can include Codex entries not mentioned in the open scene, or select entries without an open scene. Location, item and lore descriptions reach the model even when the entry has no free-text sections. Entry and section AI exclusions remain enforced. Requires the matching AI Assistant extension update.
 
 ---
 

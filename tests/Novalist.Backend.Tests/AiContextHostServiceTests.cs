@@ -51,6 +51,29 @@ public class AiContextHostServiceTests
         => Host().GetAiContextAsync(_chapter.Guid, _scene.Id);
 
     [Fact]
+    public async Task ExplicitPickerContextDoesNotRequireSceneMentionsAndStillRedactsEntriesAndSections()
+    {
+        CharactersAre(
+            new CharacterData { Id = "c1", Name = "Rose", Sections = [
+                new() { Title = "Public", Content = "Known things." },
+                new() { Title = "Twist", Content = "Hidden things.", AiHidden = true }
+            ] },
+            new CharacterData { Id = "c2", Name = "Secret", Ai = AiInclusion.Never });
+        var entry = Assert.Single(await Host().GetAiContextAsync(string.Empty, string.Empty));
+        Assert.Equal("Rose", entry.Name);
+        Assert.Equal(["Public"], entry.Sections.Select(section => section.Title));
+        await _proj.DidNotReceive().ReadSceneContentAsync(Arg.Any<ChapterData>(), Arg.Any<SceneData>());
+    }
+
+    [Fact]
+    public async Task ExplicitPickerContextIncludesLoreDescriptionWithoutFreeTextSections()
+    {
+        _ent.LoadLoreAsync().Returns([new LoreData { Id = "l1", Name = "Pact", Description = "The old agreement." }]);
+        var entry = Assert.Single(await Host().GetAiContextAsync(string.Empty, string.Empty));
+        Assert.Contains(entry.Sections, section => section.Content == "The old agreement.");
+    }
+
+    [Fact]
     public async Task ACharacterTheSceneNamesComesThrough()
     {
         SceneSays("Rose opened the door.");
