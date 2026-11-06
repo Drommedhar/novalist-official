@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { waitForAppReady } from './appReady'
 
 /** Launches the packaged .app (when present) and verifies the backend handshake. */
 
@@ -23,10 +24,10 @@ test('packaged app boots and connects to its bundled backend', async () => {
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ executablePath: PACKAGED_BIN, env })
+  const app = await electron.launch({ executablePath: PACKAGED_BIN, args: [`--user-data-dir=${join(workDir, 'profile')}`], env })
   const page = await app.firstWindow()
 
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
   await expect(page.locator('.project-library')).toBeVisible()
 
   await app.close()

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 import '../../shell/shellDialogs.css'
 
 interface SheetDto {
@@ -66,7 +67,8 @@ export function ArrangeFieldsDialog({
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog-card" role="dialog" aria-label={t('entityEditor.arrangeTitle')}>
+      <div className="dialog-card" role="dialog" aria-label={t('entityEditor.arrangeTitle')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}>
         <div className="dialog-title">{t('entityEditor.arrangeTitle')}</div>
         <p className="settings-hint">{t('entityEditor.arrangeIntro')}</p>
 

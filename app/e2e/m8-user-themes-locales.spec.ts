@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 
 /**
  * Themes and interface languages dropped into folders under the settings root
@@ -20,13 +20,14 @@ test('folder themes and locales reach the Settings dropdowns', async () => {
   mkdirSync(join(settingsDir, 'Locales'), { recursive: true })
 
   // A token-map theme. Only the --nl-* tier is honoured, so --nv-ground must be
-  // ignored while --nl-surface-window takes effect.
+  // ignored while custom surface and accent colours take effect.
   writeFileSync(
     join(settingsDir, 'Themes', 'nord.json'),
     JSON.stringify({
       name: 'Nord',
       tokens: {
         '--nl-surface-window': '#2e3440',
+        '--nl-surface-card': '#3b4252',
         '--nl-accent': '#88c0d0',
         '--nv-ground': '#ff0000'
       }
@@ -55,9 +56,9 @@ test('folder themes and locales reach the Settings dropdowns', async () => {
   env.NOVALIST_SETTINGS_DIR = settingsDir
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   // Settings live inside the shell, which only renders with a project open.
   await evaluateWhenReady(page, async (parent) => {
@@ -84,12 +85,19 @@ test('folder themes and locales reach the Settings dropdowns', async () => {
   const nord = await page.evaluate(() => {
     const style = getComputedStyle(document.documentElement)
     return {
+      material: document.documentElement.dataset.material,
       window: style.getPropertyValue('--nl-surface-window').trim(),
+      card: style.getPropertyValue('--nl-surface-card').trim(),
       accent: style.getPropertyValue('--nl-accent').trim(),
       brand: style.getPropertyValue('--nv-ground').trim()
     }
   })
-  expect(nord.window).toBe('#2e3440')
+  // Native glass keeps window chrome transparent; content cards still use
+  // the selected palette, and opaque platforms also use its window colour.
+  const nativeMaterial = nord.material === 'glass' || nord.material === 'vibrancy'
+  expect(nord.window).toBe(nativeMaterial ? 'transparent' : '#2e3440')
+  expect(nord.card).toBe('#3b4252')
+  await expect(page.locator('.settings-search-box')).toHaveCSS('background-color', 'rgb(59, 66, 82)')
   expect(nord.accent).toBe('#88c0d0')
   // The brand layer is the corporate identity and is not overridable.
   expect(nord.brand).not.toBe('#ff0000')

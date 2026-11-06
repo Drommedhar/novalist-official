@@ -182,7 +182,13 @@ public sealed class WordHistoryService : IWordHistoryService
         }
     }
 
-    public async Task RecordSaveAsync(string bookId, string sceneId, int wordsAfterSave)
+    public Task RecordSaveAsync(string bookId, string sceneId, int wordsAfterSave) =>
+        RecordAsync(bookId, sceneId, wordsAfterSave, countProgress: true);
+
+    public Task RecordBaselineAsync(string bookId, string sceneId, int wordsAfterSave) =>
+        RecordAsync(bookId, sceneId, wordsAfterSave, countProgress: false);
+
+    private async Task RecordAsync(string bookId, string sceneId, int wordsAfterSave, bool countProgress)
     {
         if (string.IsNullOrEmpty(sceneId)) return;
         var path = HistoryFilePath;
@@ -196,7 +202,7 @@ public sealed class WordHistoryService : IWordHistoryService
             var today = DateOnly.FromDateTime(DateTime.Now);
             var todayKey = today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
             var prev = _lastWordsPerScene.TryGetValue(sceneId, out var prevWords) ? prevWords : 0;
-            var delta = wordsAfterSave - prev;
+            var delta = countProgress ? wordsAfterSave - prev : 0;
 
             // Look for an existing in-memory row for (date, sceneId). If present, update its
             // delta cumulatively. The journal stays append-only.
@@ -211,10 +217,12 @@ public sealed class WordHistoryService : IWordHistoryService
 
             if (existingIdx >= 0)
             {
-                var ex = updated[existingIdx];
-                ex.Delta += delta;
-                ex.Words = wordsAfterSave;
-                ex.BookId = bookId;
+                var previous = updated[existingIdx];
+                updated[existingIdx] = new WordHistoryEntry
+                {
+                    Date = todayKey, SceneId = sceneId, BookId = bookId,
+                    Words = wordsAfterSave, Delta = previous.Delta + delta
+                };
             }
             else
             {
@@ -227,12 +235,10 @@ public sealed class WordHistoryService : IWordHistoryService
                     Delta = delta,
                 });
             }
-            _entries = updated;
             var words = new Dictionary<string, int>(_lastWordsPerScene, StringComparer.OrdinalIgnoreCase)
             {
                 [sceneId] = wordsAfterSave
             };
-            _lastWordsPerScene = words;
 
             var dir = _fileService.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(dir))
@@ -251,6 +257,8 @@ public sealed class WordHistoryService : IWordHistoryService
                 ? await _fileService.ReadTextAsync(path)
                 : string.Empty;
             await _fileService.WriteTextAsync(path, existing + append);
+            _entries = updated;
+            _lastWordsPerScene = words;
         }
         finally
         {

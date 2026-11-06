@@ -59,7 +59,8 @@
 }
 
 /* Back bar shown above the editor in the Manuscript tab. */
-.mobile-editor-bar {
+.mobile-editor-bar,
+.mobile-topbar {
   display: flex;
   align-items: center;
   /* The shell now holds the safe-area insets, so this bar only needs its own
@@ -79,6 +80,30 @@
   font-size: var(--nl-font-body-lg);
   cursor: pointer;
   padding: var(--nl-space-tighter) var(--nl-space-sm);
+}
+
+.mobile-topbar {
+  flex: 0 0 auto;
+}
+
+.mobile-library-button {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--nl-space-sm);
+  min-height: var(--nl-control-h);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  cursor: pointer;
+}
+
+.mobile-library-button:focus-visible {
+  outline: var(--nl-space-tightest) solid var(--nl-focus-ring);
+  outline-offset: var(--nl-space-tightest);
 }
 
 /* The binder is a fixed-width sidebar on desktop (inline style width); full-width
@@ -255,16 +280,37 @@
   cursor: pointer;
 }
 
-/* The first-run tour sits in the bottom-right corner, which on a phone is where
-   the native Liquid Glass tab bar floats over the web content. Its Skip / Back /
-   Next row ended up underneath the bar, so the tour could not be advanced or
-   dismissed and covered the bottom of every tab on every launch. Lift it clear
-   of the bar and let it use the width a phone actually has. */
+/* Native navigation overlays the WebView; the tour must clear both the tablet
+   sidebar and the phone tab bar, including after rotation. */
 .shell.mobile .tour-card {
   bottom: calc(var(--nl-mobile-tabbar-h) + var(--nl-safe-bottom) + var(--nl-space-md));
-  left: calc(var(--nl-safe-left) + var(--nl-space-md));
+  left: calc(var(--nl-mobile-sidebar-w) + var(--nl-safe-left) + var(--nl-space-md));
   right: calc(var(--nl-safe-right) + var(--nl-space-md));
   max-width: none;
+  max-height: calc(100dvh - var(--nl-safe-top) - var(--nl-mobile-tabbar-h) - var(--nl-safe-bottom) - 2 * var(--nl-space-md));
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.shell.mobile .tour-actions {
+  flex-wrap: wrap;
+}
+
+.tour-landscape-hint {
+  display: none;
+}
+
+@media (orientation: portrait) {
+  .shell.mobile .tour-landscape-hint {
+    display: block;
+    padding: var(--nl-space-md);
+    margin: 0 0 var(--nl-space-md);
+    border-left: var(--nl-space-tightest) solid var(--nl-accent);
+    background: var(--nl-surface-input);
+    color: var(--nl-text);
+    font-size: var(--nl-font-body);
+  }
 }
 
 /* ── Axis clamps: every screen the phone shell runs on ──

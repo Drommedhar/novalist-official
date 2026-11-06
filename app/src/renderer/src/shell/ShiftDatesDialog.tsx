@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import type { ProjectStateDto } from '../stores/projectStore'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface ShiftRow {
   sceneId: string
@@ -57,7 +58,8 @@ export function ShiftDatesDialog(props: {
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && props.onClose()}>
-      <div className="dialog-card shift-dates-dialog" role="dialog" aria-label={t('bulk.shiftDates')}>
+      <div className="dialog-card shift-dates-dialog" role="dialog" aria-label={t('bulk.shiftDates')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, props.onClose)}>
         <div className="dialog-title">{t('bulk.shiftDates')}</div>
 
         <div className="shift-dates-controls">

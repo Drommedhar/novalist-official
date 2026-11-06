@@ -12,6 +12,13 @@ Novalist is organised around **five modes** — Write, Plan, World, Publish and 
 
 The **toolbar** sits below the native menu, followed by the horizontal **mode rail**: Library, Dashboard, Write, Plan, World, Publish, Series, Extensions and Settings. Below it, the left column holds the mode's views; in Write, these share one column with the binder. The main area sits alongside the scene inspector. The status bar runs along the bottom.
 
+**Collaborate** in the toolbar opens a compact panel to share the current project
+or join an invitation. New connections default to **Direct connection (TCP)**,
+or **Steam** in Steam-enabled builds when its runtime is available. Selecting
+**Relay server** shows where to get the community server software and its setup
+guide. While connected, the panel shows the session's status and invitation controls. See
+[Collaboration](23-settings.md#collaboration).
+
 Desktop controls use the system sans-serif font and flat surfaces. Book covers keep their literary type, and your manuscript font remains controlled by your editor settings. Forms have a bounded width in a maximized window; tables, galleries and canvases use the available space.
 
 ## Where things live
@@ -36,7 +43,7 @@ The menu bar is always visible on Windows and Linux, and sits in the system bar 
 - **File** — New Project, Browse for Project Folder, Import from Obsidian Plugin, Import a manuscript, Quick capture, Print, **Recent Projects** (a submenu of the last ten), and Exit (Close, on macOS).
 - **Edit** — Undo, Redo, Cut, Copy, Paste, Select All. These are the system's own, so they behave exactly as they do in every other application.
 - **Go** — every view in the app by name, grouped exactly as the modes group them: Dashboard; then Editor and Manuscript; then Timeline, Plot Grid, Planning board, Relationships, Calendar and Dialogue; then Codex, Wiki, Maps, Research, Gallery and Languages; then Exposé, Export, Git and Style report; then Series; then Extensions and Settings — with Quick Open and the Command Palette at the end.
-- **View** — Show the mode panel, the binder, the inspector and the scene notes; Focus Mode; the pane commands (split right, split down, close, default layout, open in its own window); **Pane layouts** and **Workspace layouts**; interface size; and the developer items your platform provides.
+- **View** — Show the mode panel, the binder, the inspector; Focus Mode; the pane commands (split right, split down, close, default layout, open in its own window); **Pane layouts** and **Workspace layouts**; interface size; and the developer items your platform provides.
 - **Window** — brings the main window back after you have closed it, minimise, zoom, and the window list.
 - **Help** — the **User manual**, **Take the tour**, **[Support Novalist](01-getting-started.md#supporting-novalist)**, **[About](#about)**, **Check for Updates** (absent in the Mac App Store build, which updates itself), and **Novalist on GitHub**.
 
@@ -89,7 +96,7 @@ The chrome around the main area belongs to the mode, not to the individual view.
 | **Dashboard** | — | — | Yes | Yes |
 | Settings, Extensions, About | — | — | — | — |
 
-The binder, the inspector and the scene-notes dock are **Write's alone**. The Export view already has its own controls for choosing what goes in, and a second way to pick the same thing is exactly the duplication this arrangement removes.
+The binder and inspector belong to **Write**. The floating Scene Notes window remains available across workspaces. The Export view already has its own controls for choosing what goes in, and a second way to pick the same thing is exactly the duplication this arrangement removes.
 
 Series is the one mode with no book and draft selectors, because it is the one mode that is not about a single book. Everywhere else the toolbar is the same toolbar, so what it holds is one thing to learn rather than five.
 
@@ -134,7 +141,7 @@ The left pane in Write is the chapter/scene tree. View navigation lives in the m
 
 ### Tabs
 
-- **Chapters** — the chapter/scene tree of the active book: act headers, status dots, per-scene word counts, drag-and-drop reordering, context menus, and the Archive section. See [Chapters & Scenes](04-chapters-and-scenes.md).
+- **Chapters** — the chapter/scene tree of the active book: act headers, scene-stage dots, per-scene word counts, drag-and-drop reordering, context menus, and the Archive section. See [Chapters & Scenes](04-chapters-and-scenes.md).
 - **Smart Lists** — saved scene queries (e.g. "all scenes with POV = Alice that aren't in First Draft yet"). See [Smart Lists](16-smart-lists.md).
 - **Collections** — hand-curated groups of scenes, and **Bookmarks** — scenes you marked to come back to. Both are in [Smart Lists](16-smart-lists.md) too.
 
@@ -155,13 +162,13 @@ Two selectors sit above the tree.
 
 Right-click a scene and choose **Pin to top** to put it in a **Pinned** group above the book, with the chapter it came from beside it. Pins survive restarts and are per project. The group only appears when something is pinned. **Unpin** removes it.
 
-Drag the binder's right edge to resize it. It opens at a width proportional to your display, and once you drag it Novalist keeps that width for future sessions. The mode panel, the inspector and the scene-notes dock work the same way.
+Drag the binder's right edge to resize it. It opens at a width proportional to your display, and once you drag it Novalist keeps that width for future sessions. The mode panel and inspector work the same way. Resize the Scene Notes window using its native window edges; its placement and size are remembered.
 
 ### Workspace layouts
 
 Novalist always opened in the same shape, so planning, drafting and revising meant dragging the same panels back and forth several times a day. **View → Workspace layouts** (`Ctrl+Alt+L`) saves the shape you are in under a name and brings it back with one click.
 
-A layout stores which view you are on, which binder and inspector tabs are open, whether the binder, inspector and scene-notes dock are visible, both panel widths, and whether focus mode is on. Saving under a name you have already used updates that layout rather than adding a second one.
+A layout stores which view you are on, which binder and inspector tabs are open, whether the binder, inspector and Scene Notes window are visible, both panel widths, and whether focus mode is on. Saving under a name you have already used updates that layout rather than adding a second one.
 
 Layouts are stored per machine, alongside your panel widths — they follow the computer you work on, not the project.
 
@@ -201,9 +208,21 @@ Finish or cancel open naming, chapter and scene dialogs before switching the sha
 
 If the backend restarts unexpectedly, your open editors keep their unsaved text while Novalist reconnects to the same project, book and draft. If recovery cannot reopen the project, editing stays paused. Make the project folder available again and choose **Retry** in the recovery dialog.
 
-### The scene-notes dock
+### The scene-notes window
 
-Below the editor sits an optional **scene-notes dock**, toggled from **View → Toggle scene notes** or `Ctrl+Shift+N`. It holds the open scene's **Synopsis** and freeform **Notes** side by side, saved when you click away. Drag its top edge to resize it — the height you set is remembered. The dock only appears in the editor.
+Open **Notes** on the project toolbar or press `Ctrl+Shift+N`. Scene Notes is a movable, resizable panel: drag its header to keep it beside your manuscript or on another monitor. It floats above the active Novalist window, including Focus Mode, without staying above other applications or following you to their desktops. It remembers its size and position. The panel has its own pin and hide controls instead of native window buttons, with Liquid Glass on macOS 26+ and vibrancy on older macOS.
+
+Use **Dock scene notes** in the floating header, then choose the top, bottom, left or right edge of any content pane. Notes join the existing pane layout: you can place them above the editor, between the editor and inspector, or alongside a nested pane. Drag the dividers to resize them. **Move scene notes** chooses another position; **Float scene notes** returns to the separate window. The current notes position, proportions and docked visibility are restored automatically after restarting; you do not need to save a named layout. Hiding notes keeps their docked position for the next time you open them. Choosing **Float scene notes** remembers the floating presentation instead. Named **Pane layouts** also save the notes position and proportions. Moving between presentations saves pending edits first and preserves the followed or held scene.
+
+A wide, shallow notes panel arranges root items from left to right, with quick-add below. While editing in that shape, the full text editor appears below the checklist. Narrow, tall panels use a vertical list and switch between checklist and text editing.
+
+Bullet lists automatically become checklists, preserving your wording, existing ticks and nesting. Each root bullet is a checkable title. Expand it to read continuation paragraphs and nested checklist items; a count beside the title shows subitem progress. Parent and child checkboxes are independent. Finished root items move into the collapsible **Completed** group. Expanded details and the Completed group's open or closed state are remembered separately for each scene on this computer, including after restarting Novalist. Ordinary text remains readable, and long bullets keep their full text.
+
+Use **Add a scene goal** for a quick root item. **Edit notes** opens the full text editor: paste bullets, indent subitems, add free-text detail paragraphs, or reorder the text. **Show checklist** returns to the interactive view. Changes save automatically. In a shared project, checklist ticks and note text update live for collaborators. Pending edits remain available when switching between the checklist and text editor during a connection interruption. A failed save keeps the text available with a **Retry** action.
+
+**Follow active scene** updates the checklist as you select scenes. Turn it off to hold one scene while researching elsewhere; changing the project, book or draft resets the old context. The **Pinned** header button keeps the panel visible over Novalist while writing. Switch it to **Auto-hide** to hide the panel when another window receives focus. **Hide**, `Escape`, or the shortcut dismiss it; the **Notes** button restores it. Changes save automatically without a status footer; failed saves show a retry message.
+
+Synopsis, goal/outcome, timing, narrative mode, cast and custom fields live in **Inspector → Properties**. They are separate from the floating checklist. Mobile retains its Scene Notes inspector tab.
 
 ## The inspector
 
@@ -212,6 +231,7 @@ The right pane in Write is the context sidebar for the open scene, with these ta
 - **Context** — the scene's characters, mention frequency, locations, items, lore, and editable scene analysis (POV, emotion, intensity, conflict, tags). See [Inspector](22-context-sidebar.md).
 - **Footnotes** — the footnotes and comments anchored in the open scene.
 - **Inbox** — suggested edits waiting elsewhere in the book, and the passages you have cut and kept.
+- **Properties** — synopsis, goal/outcome, timing, narrative mode, cast and custom scene fields.
 
 Per-scene snapshots are taken from the **writing bar** above the editor rather than from the inspector or the toolbar. See [Snapshots](17-snapshots.md).
 
@@ -258,7 +278,7 @@ The page list down the left side holds the whole manual, and the search box abov
 
 Hover areas grow with the spare space beside the page. Side panels slide in gently (unless reduced motion is enabled), with scene context prepared before it appears and retained between reveals.
 
-Move to the top of the window or activate **Writing tools** to reveal formatting and **Leave focus**. Hover at the left edge for the binder or the right edge for the inspector; move back to the page to let them retreat. Fields you are editing stay open. The binder (`Ctrl+Alt+B`), inspector (`Ctrl+Alt+I`) and scene notes (`Ctrl+Shift+N`) also open over the page through their shortcuts and buttons. Close those panels with **Return to writing**, `Escape`, the shortcut, or a click outside. Inline tools and entity peeks still work, and active writing modes retain their indicator.
+Move to the top of the window or activate **Writing tools** to reveal formatting and **Leave focus**. Hover at the left edge for the binder or the right edge for the inspector; move back to the page to let them retreat. Fields you are editing stay open. The binder (`Ctrl+Alt+B`) and inspector (`Ctrl+Alt+I`) also open over the page through their shortcuts and buttons. Scene Notes (`Ctrl+Shift+N`) opens its floating checklist window. Close the binder and inspector with **Return to writing**, `Escape`, the shortcut, or a click outside. Inline tools and entity peeks still work, and active writing modes retain their indicator.
 
 Use the command palette to visit the Codex or another workspace, then choose **Return to the page** to continue in the same editor. Press `F11` again to restore the normal layout. Pair focus with **Dim other paragraphs while writing** in [Settings](23-settings.md) → Editor if you prefer.
 
@@ -267,6 +287,8 @@ Use the command palette to visit the Codex or another workspace, then choose **R
 All dialogs (chapter creation, find & replace, confirmations, pane layouts, snapshots, the template editor, and so on) appear as in-window overlays with a dimmed background — there are no native modal windows. Dismiss most of them by clicking outside, pressing `Escape`, or using **Cancel**.
 
 ## Leaving a screen with unsaved edits
+
+On phones and tablets, the labeled **Library** button at the top of the workspace returns to your bookshelf. It saves pending scene edits before closing the project. The button remains available as you move between views.
 
 Some screens hold what you type until you press **Save** — the plot [thread detail](08-plot-grid.md#a-thread-as-more-than-a-row-of-ticks) is one. Leaving one of those with edits in hand asks first, whichever way you set off: the activity bar, the mode panel, the command palette, a hotkey, a map pin, a research link, or clicking a scene in the binder.
 

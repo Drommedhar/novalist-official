@@ -7,6 +7,10 @@ import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingW
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { useEntitySections } from './useEntitySections'
+import { useEntityFieldSuggestions } from './useEntityFieldSuggestions'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
+import { EntityAliases } from './EntityAliases'
 
 interface RelationshipRow {
   role: string
@@ -47,7 +51,6 @@ export function EntityListsEditor({
   const includeRelationships =
     RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
   const [aliases, setAliases] = useState<string[]>([])
-  const [aliasDraft, setAliasDraft] = useState('')
   const { sections, setSections, flushSections } = useEntitySections(entityType, selectedId, record)
   const [relationships, setRelationshipsState] = useState<RelationshipRow[]>([])
   // Whether any extension offers a generator at all. Without one the buttons
@@ -75,8 +78,7 @@ export function EntityListsEditor({
     rowsRef.current = next
     setRelationshipsState(next)
   }
-  const [nameSuggestions, setNameSuggestions] = useState<string[]>([])
-  const [roleSuggestions, setRoleSuggestions] = useState<string[]>([])
+  const suggestions = useEntityFieldSuggestions(entityType, JSON.stringify([selectedId, restoredRevision]))
 
   /**
    * The entry these fields were last loaded for.
@@ -101,19 +103,6 @@ export function EntityListsEditor({
         : []
     )
   }, [selectedId, record, restoredRevision])
-
-  useEffect(() => {
-    // Every type that carries relationships, not characters alone: a location
-    // with no name suggestions is a relationship row nobody fills in.
-    if (!includeRelationships) return
-    void rpc
-      .request<{ characterNames: string[]; roles: string[] }>('entities/relationshipSuggestions')
-      .then((s) => {
-        setNameSuggestions(s.characterNames)
-        setRoleSuggestions(s.roles)
-      })
-      .catch(() => {})
-  }, [entityType, selectedId, includeRelationships])
 
   /**
    * One save, once the edits have settled.
@@ -242,70 +231,45 @@ export function EntityListsEditor({
       })
   }
 
-  const addAlias = (): void => {
-    const value = aliasDraft.trim()
-    if (!value || aliases.includes(value)) return
-    const next = [...aliases, value]
-    setAliases(next)
-    setAliasDraft('')
-    persistAliases(next)
-  }
-
   return (
     <div className="entity-lists">
-      <section data-entity-tab="overview" className="codex-entry-section">
-        <div className="inspector-label">{t('entityEditor.aliases')}</div>
-        <div className="entity-chips">
-          {aliases.map((alias) => (
-            <span key={alias} className="entity-chip">
-              {alias}
-              <button
-                aria-label={`${t('explorer.contextDelete')} ${alias}`}
-                onClick={() => {
-                  const next = aliases.filter((a) => a !== alias)
-                  setAliases(next)
-                  persistAliases(next)
-                }}
-              >
-                <X size={11} strokeWidth={2} />
-              </button>
-            </span>
-          ))}
-          <input
-            className="entity-chip-input"
-            value={aliasDraft}
-            placeholder={t('entityEditor.addAlias')}
-            onChange={(e) => setAliasDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addAlias()}
-            onBlur={addAlias}
-          />
-        </div>
-      </section>
+      <EntityAliases key={selectedId} binding={metadataBinding(record, 'aliases')}
+        values={metadataBinding(record, 'aliases') ? record.aliases as string[] ?? [] : aliases}
+        onChange={next => { setAliases(next); persistAliases(next) }} />
       {includeRelationships && (
+        <SharedMetadataField<RelationshipRow[] | null> binding={metadataBinding(record, 'relationships')}
+          value={metadataBinding(record, 'relationships') ? record.relationships as RelationshipRow[] ?? [] : relationships}
+          onChange={next => setRelationships(next ?? [])}>
+          {({ value, editable, change }) => {
+            const displayed = value ?? []
+            return (
         <section data-entity-tab="relationships" className="codex-entry-section">
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
           <datalist id="codex-rel-names">
-            {nameSuggestions.map((n) => (
+            {(suggestions.names.relationshipNames ?? []).map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
           <datalist id="codex-rel-roles">
-            {roleSuggestions.map((r) => (
+            {(suggestions.names.relationshipRoles ?? []).map((r) => (
               <option key={r} value={r} />
             ))}
           </datalist>
-          {relationships.map((rel, index) => {
+          {displayed.map((rel, index) => {
             // Built from the live rows too, so two edits landing before a
             // re-render do not overwrite each other - which is what happened
             // when the inverse role arrived from the backend mid-typing.
             const patch = (p: Partial<RelationshipRow>): void =>
-              setRelationships(rowsRef.current.map((r, i) => (i === index ? { ...r, ...p } : r)))
+              change(current => (current ?? []).map((r, i) => (i === index ? { ...r, ...p } : r)))
             return (
               <div key={index} className="entity-rel-row">
                 <input
                   className="outliner-input"
                   list="codex-rel-roles"
+                  onFocus={suggestions.loadRelationships}
+                  title={suggestions.errors.relationships}
                   placeholder={t('entityEditor.rolePlaceholderRel')}
+                  readOnly={!editable}
                   value={rel.role}
                   onChange={(e) => patch({ role: e.target.value })}
                   onBlur={() => {
@@ -316,27 +280,31 @@ export function EntityListsEditor({
                           if (inv) patch({ inverseRole: inv })
                         })
                     }
-                    persistRelationships()
+                    if (!metadataBinding(record, 'relationships')) persistRelationships()
                   }}
                 />
                 <input
                   className="outliner-input"
                   list="codex-rel-names"
+                  onFocus={suggestions.loadRelationships}
+                  title={suggestions.errors.relationships}
                   placeholder={t('entityEditor.targetNames')}
+                  readOnly={!editable}
                   value={rel.target}
                   onChange={(e) => patch({ target: e.target.value })}
-                  onBlur={() => persistRelationships()}
+                  onBlur={() => !metadataBinding(record, 'relationships') && persistRelationships()}
                 />
                 <select
                   className="outliner-input codex-rel-kind"
                   aria-label={t('entityEditor.tieKind')}
+                  aria-disabled={!editable}
                   value={rel.category ?? ''}
                   onChange={(e) => {
-                    const next = relationships.map((r, i) =>
+                    const next = displayed.map((r, i) =>
                       i === index ? { ...r, category: e.target.value } : r
                     )
-                    setRelationships(next)
-                    persistRelationships()
+                    change(next)
+                    if (!metadataBinding(record, 'relationships')) persistRelationships()
                   }}
                 >
                   {TIE_KINDS.map((kind) => (
@@ -349,17 +317,20 @@ export function EntityListsEditor({
                   className="outliner-input codex-rel-inverse"
                   placeholder={t('entityEditor.inverseRole')}
                   list="codex-rel-roles"
+                  onFocus={suggestions.loadRelationships}
+                  title={suggestions.errors.relationships}
+                  readOnly={!editable}
                   value={rel.inverseRole ?? ''}
                   onChange={(e) => patch({ inverseRole: e.target.value })}
-                  onBlur={() => persistRelationships()}
+                  onBlur={() => !metadataBinding(record, 'relationships') && persistRelationships()}
                 />
                 <button
                   className="binder-expand"
                   aria-label={t('explorer.contextDelete')}
                   onClick={() => {
-                    const next = relationships.filter((_, i) => i !== index)
-                    setRelationships(next)
-                    persistRelationships()
+                    const next = displayed.filter((_, i) => i !== index)
+                    change(next)
+                    if (!metadataBinding(record, 'relationships')) persistRelationships()
                   }}
                 >
                   <X size={12} strokeWidth={2} />
@@ -370,8 +341,8 @@ export function EntityListsEditor({
           <button
             className="binder-rail-item codex-add-relationship"
             onClick={() =>
-              setRelationships([
-                ...relationships,
+              change(current => [
+                ...(current ?? []),
                 { role: '', target: '', category: '', inverseRole: '' }
               ])
             }
@@ -380,23 +351,22 @@ export function EntityListsEditor({
             {t('entityEditor.addRelationship')}
           </button>
         </section>
+            )
+          }}
+        </SharedMetadataField>
       )}
 
       <section data-entity-tab="overview" className="codex-entry-section">
         <div className="inspector-label">{t('entityEditor.sections')}</div>
         {sections.map((section, index) => (
-          <div key={index} className="entity-section">
+          <div key={section.id ?? index} className="entity-section">
             <div className="entity-section-head">
-              <input
-                className="outliner-input entity-section-title"
-                value={section.title}
-                onChange={(e) =>
-                  setSections((current) =>
-                    current.map((s, i) => (i === index ? { ...s, title: e.target.value } : s))
-                  )
-                }
-                onBlur={() => void flushSections().catch(() => {})}
-              />
+              <SharedMetadataField<string | null> binding={section.id ? metadataBinding(record, `section:${section.id}:title`) : undefined}
+                value={section.title} onChange={next => setSections(current => current.map((s, i) => i === index ? { ...s, title: next ?? '' } : s))}>
+                {({ value, editable, change }) => <input className="outliner-input entity-section-title"
+                  value={value ?? ''} readOnly={!editable} onChange={event => change(event.target.value)}
+                  onBlur={() => { if (!section.id || !metadataBinding(record, `section:${section.id}:title`)) void flushSections().catch(() => {}) }} />}
+              </SharedMetadataField>
               {canGenerate && (
                 <button
                   className="binder-expand"
@@ -432,6 +402,7 @@ export function EntityListsEditor({
               </button>
             </div>
             <MarkdownEditor
+              shared={section.id ? proseBinding(record, `section:${section.id}`) : undefined}
               value={section.content}
               ariaLabel={section.title}
               onChange={(next) =>
@@ -446,7 +417,7 @@ export function EntityListsEditor({
         <button
           className="binder-rail-item"
           onClick={() =>
-            setSections((current) => [...current, { title: t('section.newSection'), content: '' }])
+            setSections((current) => [...current, { id: crypto.randomUUID(), title: t('section.newSection'), content: '' }])
           }
         >
           <Plus size={13} strokeWidth={2} />

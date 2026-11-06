@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
-import { useCodexStore } from './codexStore'
+import { applySharedCodexField, useCodexStore } from './codexStore'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
+import { registerSharedProjectNotifications } from '../collaboration/sharedProjectNotifications'
 import { useExtensionsStore } from './extensionsStore'
 import { useShellStore } from './shellStore'
+import { invalidateSceneContext } from '../shell/sceneContextData'
 
 /**
  * Bridges the backend extension host's imperative UI capabilities — toasts,
@@ -168,6 +170,7 @@ export function registerHostBridge(): void {
   registered = true
 
   registerProjectNotifications()
+  registerSharedProjectNotifications()
   registerViewNotifications()
   registerProgressNotifications()
   registerDialogNotifications()
@@ -184,16 +187,22 @@ function registerViewNotifications(): void {
 }
 
 function registerProjectNotifications(): void {
+  rpc.onNotification('collaboration/fieldUpdated', params => {
+    const change = firstParam<{ sessionId: string; itemId: string; value: string } | null>(params)
+    if (change) applySharedCodexField(change)
+  })
 
   // An extension writing to the project changes files the interface is
   // already showing. Without these two the writer saw their old values until
   // they clicked away and back, which reads as the extension having failed.
   rpc.onNotification('entities/changed', () => {
+    invalidateSceneContext()
     if (useProjectStore.getState().workspaceBusy) return
     void useCodexStore.getState().refresh().catch(() => {})
   })
 
   rpc.onNotification('project/structureChanged', () => {
+    invalidateSceneContext()
     if (useProjectStore.getState().workspaceBusy) return
     const epoch = useProjectStore.getState().workspaceEpoch
     void rpc

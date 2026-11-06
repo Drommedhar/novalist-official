@@ -45,6 +45,7 @@ for (const source of ['manual', 'faction pack']) {
 
       for (const [label, name] of [['Seat', 'Location Test'], ['Leader', 'Character Test'], ['Domain', 'Realm Test']]) {
         const field = h.page.getByRole('combobox', { name: label, exact: true })
+        await field.focus()
         await expect.poll(() => field.evaluate((input: HTMLInputElement) =>
           Array.from(input.list?.options ?? []).map((option) => option.value)
         )).toEqual([name])

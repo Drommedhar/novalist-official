@@ -36,7 +36,7 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 | --- | --- |
 | Toggle binder (left pane) | `Ctrl+Alt+B` |
 | Toggle inspector (right pane) | `Ctrl+Alt+I` |
-| Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
+| Toggle scene notes (floating checklist window) | `Ctrl+Shift+N` |
 | Show the mode panel | *(unbound)* |
 | Focus Mode | `F11` |
 | Split pane right | `Ctrl+Alt+Right` |

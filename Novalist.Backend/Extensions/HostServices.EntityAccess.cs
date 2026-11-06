@@ -199,15 +199,16 @@ public sealed partial class HostServices
     async Task<IReadOnlyList<Sdk.Services.AiContextEntryInfo>>
         IExtensionEntityService.GetAiContextAsync(string chapterGuid, string sceneId)
     {
-        var chapter = _projectService.GetChaptersOrdered()
-            .FirstOrDefault(c => c.Guid == chapterGuid);
-        var scene = chapter == null
-            ? null
-            : _projectService.GetScenesForChapter(chapterGuid).FirstOrDefault(s => s.Id == sceneId);
-        if (chapter == null || scene == null) return [];
-
-        var html = await _projectService.ReadSceneContentAsync(chapter, scene);
-        var prose = Core.Utilities.TextDiff.StripHtml(html);
+        var explicitPicker = string.IsNullOrEmpty(chapterGuid) && string.IsNullOrEmpty(sceneId);
+        var prose = string.Empty;
+        if (!explicitPicker)
+        {
+            var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+            if (chapter == null) return [];
+            var scene = _projectService.GetScenesForChapter(chapterGuid).FirstOrDefault(s => s.Id == sceneId);
+            if (scene == null) return [];
+            prose = Core.Utilities.TextDiff.StripHtml(await _projectService.ReadSceneContentAsync(chapter, scene));
+        }
 
         var characters = await _entityService.LoadCharactersAsync();
         var locations = await _entityService.LoadLocationsAsync();
@@ -218,11 +219,11 @@ public sealed partial class HostServices
         all.AddRange(characters.Select(c => new Core.Services.AiContextEntry(
             c.Id, "character", EntityResolveIndex.Compose(c.Name, c.Surname), c.Ai, c.Sections)));
         all.AddRange(locations.Select(l => new Core.Services.AiContextEntry(
-            l.Id, "location", l.Name, l.Ai, l.Sections)));
+            l.Id, "location", l.Name, l.Ai, ContextSections(l.Description, l.Sections))));
         all.AddRange(items.Select(i => new Core.Services.AiContextEntry(
-            i.Id, "item", i.Name, i.Ai, i.Sections)));
+            i.Id, "item", i.Name, i.Ai, ContextSections(i.Description, i.Sections))));
         all.AddRange(lore.Select(lo => new Core.Services.AiContextEntry(
-            lo.Id, "lore", lo.Name, lo.Ai, lo.Sections)));
+            lo.Id, "lore", lo.Name, lo.Ai, ContextSections(lo.Description, lo.Sections))));
         foreach (var type in _entityService.GetCustomEntityTypes())
         {
             var entities = await _entityService.LoadCustomEntitiesAsync(type.TypeKey);
@@ -235,7 +236,7 @@ public sealed partial class HostServices
         // better failure than one that withholds context the model needed.
         var mentioned = all
             .Where(e => e.Name.Length > 0
-                        && prose.Contains(e.Name, StringComparison.OrdinalIgnoreCase))
+                        && (explicitPicker || prose.Contains(e.Name, StringComparison.OrdinalIgnoreCase)))
             .Select(e => e.Id)
             .ToHashSet(StringComparer.Ordinal);
 
@@ -253,6 +254,10 @@ public sealed partial class HostServices
                 })]
             })];
     }
+
+    private static IReadOnlyList<EntitySection> ContextSections(string description, IReadOnlyList<EntitySection> sections)
+        => string.IsNullOrWhiteSpace(description) ? sections
+            : [new EntitySection { Title = "Description", Content = description }, .. sections];
 
     void IExtensionEntityService.RequestEntityRefresh()
     {

@@ -1,4 +1,5 @@
 using Novalist.Core.Models;
+using Novalist.Core.Services;
 using Novalist.Core.Utilities;
 using StreamJsonRpc;
 
@@ -18,10 +19,19 @@ public sealed partial class ScenesRpc
     public async Task<SceneContentDto> ReadAsync(string chapterGuid, string sceneId)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+#if NOVALIST_COLLABORATION
+        var shared = await _workspace.ReadSharedSceneAsync(chapterGuid, sceneId, CancellationToken.None);
+        if (shared is not null)
+        {
+            _workspace.RaiseSceneOpened(chapter, scene);
+            return shared;
+        }
+#endif
         var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
         // Opening a scene in the editor is a scenes/read; notify extensions so the
         // AI Assistant tracks the current-scene context and knowledge cache.
-        _workspace.RaiseSceneOpened(chapter, scene);
+        using ((_workspace.FileService as IFileReadCache)?.UseFreshReads())
+            _workspace.RaiseSceneOpened(chapter, scene);
         // The hash rides along so the editor can prove, at save time, that it is
         // overwriting the version it actually read.
         return new SceneContentDto(sceneId, html, Core.Services.ContentHasher.Hash(html));
@@ -53,7 +63,7 @@ public sealed partial class ScenesRpc
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var storyDate = SceneStoryDate.Resolve(chapter, scene);
-        return new SceneMetaDto(
+        var result = new SceneMetaDto(
             scene.Id,
             scene.Synopsis,
             scene.Notes,
@@ -68,6 +78,10 @@ public sealed partial class ScenesRpc
             scene.Inactive,
             scene.RelativeTime?.Amount ?? 0,
             scene.RelativeTime?.Unit.ToString() ?? string.Empty);
+#if NOVALIST_COLLABORATION
+        result = result with { SharedFields = _workspace.SharedSceneMetadata(scene.Id), SharedProse = _workspace.SharedSceneProse(scene.Id) };
+#endif
+        return result;
     }
 
     /// <summary>
@@ -334,6 +348,9 @@ public sealed partial class ScenesRpc
     public async Task<SceneWriteResultDto> ResolveConflictAsync(
         string chapterGuid, string sceneId, string html, string plainText, string? originalMineHtml = null)
     {
+#if NOVALIST_COLLABORATION
+        _workspace.RequireUnsharedScene(chapterGuid, sceneId);
+#endif
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var hash = await _workspace.SceneConflicts.ResolveAsync(chapter, scene, html, originalMineHtml);
         // Re-save through the unchecked path so the word count, history and
@@ -352,7 +369,8 @@ public sealed partial class ScenesRpc
 /// "mine" (only the writer has it) or "theirs" (only the file has it).</summary>
 public sealed record MergeRowDto(string? Mine, string? Theirs, string State, string? MineHtml = null, string? TheirsHtml = null);
 
-public sealed record SceneContentDto(string SceneId, string Html, string Hash);
+public sealed record SceneContentDto(string SceneId, string Html, string Hash, SharedSceneContentDto? Shared = null);
+public sealed record SharedSceneContentDto(Guid SessionId, Guid ItemId, byte[] State, bool Presence = false);
 
 public sealed record SceneMetaDto(
     string SceneId,
@@ -371,7 +389,13 @@ public sealed record SceneMetaDto(
     /// no relative statement.</summary>
     int RelativeAmount,
     /// <summary>"Minutes", "Hours", "Days" or "Weeks"; empty with no offset.</summary>
-    string RelativeUnit);
+    string RelativeUnit)
+{
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+    public SharedEntityFieldsDto? SharedProse { get; init; }
+#endif
+}
 
 /// <summary>Partial patch for a scene's analysis overrides. Null fields are
 /// left unchanged; only supplied fields are written.</summary>

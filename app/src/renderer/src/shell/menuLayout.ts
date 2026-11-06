@@ -84,7 +84,6 @@ const VIEW = [
   'app.toggleModePanel',
   'app.toggleBinder',
   'app.toggleInspector',
-  'app.toggleSceneNotes',
   '-',
   'app.focusMode',
   '-',

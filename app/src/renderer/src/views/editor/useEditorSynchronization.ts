@@ -4,6 +4,7 @@ import { editorPane, useProjectStore } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { registerPendingWrite } from '../../stores/pendingWrites'
 import { type EditorFrameModel } from './useEditorFrameModel'
+import { captureSharedEditor, syncSharedEditor } from '../../collaboration/sharedEditors'
 
 export function useEditorPersistence({ editorRef, pane, openSceneId, lastReportedHtmlRef }: Pick<EditorFrameModel, 'editorRef' | 'pane' | 'openSceneId' | 'lastReportedHtmlRef'>): void {
 // The iframe normally reports an edit after 50 ms and the project store
@@ -11,6 +12,7 @@ export function useEditorPersistence({ editorRef, pane, openSceneId, lastReporte
   // the live DOM and drain both delays before the installer is allowed to run.
   useEffect(() => {
     const capture = (): void => {
+      if (captureSharedEditor(pane)) return
       const live = editorRef.current
       const store = useProjectStore.getState()
       const current = editorPane(store, pane)
@@ -26,10 +28,10 @@ export function useEditorPersistence({ editorRef, pane, openSceneId, lastReporte
       capture()
       await useProjectStore.getState().flushPane(pane)
     }, capture)
-  }, [pane, openSceneId])
+  }, [pane, openSceneId, editorRef, lastReportedHtmlRef])
 }
 
-export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, loadingRef, loadAnnotations, applyFootnoteOrder, openSceneId, annotationsRevision, ownAnnotationsRef, pendingSuggestion, isActiveEditor, pushEntityNames }: Pick<EditorFrameModel, 'editorRef' | 'sceneHtml' | 'lastReportedHtmlRef' | 'loadingRef' | 'loadAnnotations' | 'applyFootnoteOrder' | 'openSceneId' | 'annotationsRevision' | 'ownAnnotationsRef' | 'pendingSuggestion' | 'isActiveEditor' | 'pushEntityNames'>): void {
+export function useEditorScene({ pane, editorRef, sceneHtml, lastReportedHtmlRef, loadingRef, loadAnnotations, applyFootnoteOrder, openSceneId, annotationsRevision, ownAnnotationsRef, pendingSuggestion, isActiveEditor, pushEntityNames }: Pick<EditorFrameModel, 'pane' | 'editorRef' | 'sceneHtml' | 'lastReportedHtmlRef' | 'loadingRef' | 'loadAnnotations' | 'applyFootnoteOrder' | 'openSceneId' | 'annotationsRevision' | 'ownAnnotationsRef' | 'pendingSuggestion' | 'isActiveEditor' | 'pushEntityNames'>): void {
 // Push content on scene switch and on genuine external changes (snapshot
   // restore, live disk edits), but NOT when sceneHtml is merely the echo of the
   // edit the editor just reported - that would reset the caret and kill undo.
@@ -37,11 +39,16 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
     const editor = editorRef.current
     if (!editor || sceneHtml === null) return
     editor.setSceneContext(openSceneId ?? '')
-    if (sceneHtml === lastReportedHtmlRef.current) return
+    const shared = syncSharedEditor(pane, editor)
+    if (shared === 'active') {
+      lastReportedHtmlRef.current = editor.getContent()
+      return
+    }
+    if (!shared && sceneHtml === lastReportedHtmlRef.current) return
     loadingRef.current = true
-    editor.setContent(sceneHtml)
+    if (!shared) editor.setContent(sceneHtml)
     loadingRef.current = false
-    lastReportedHtmlRef.current = sceneHtml
+    lastReportedHtmlRef.current = editor.getContent()
     void loadAnnotations(editor).then((loaded) => {
       if (!loaded) return
       // The prose is on screen now, so it can say what the numbers are. A scene
@@ -73,7 +80,7 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
     if (!editor) return
     useShellStore.getState().clearPendingSuggestion()
     editor.scrollToSuggestionById(pendingSuggestion.changeId)
-  }, [pendingSuggestion, isActiveEditor, openSceneId, sceneHtml])
+  }, [pendingSuggestion, isActiveEditor, openSceneId, sceneHtml, editorRef])
 
 // Detection is scene-scoped: an entry silenced in one scene must come back in
   // the next, so the name list is rebuilt whenever the open scene changes.
@@ -109,14 +116,14 @@ export function useEditorControls({ editorRef, isActiveEditor, openSceneId, sugg
       if (useEditorBridge.getState().editor === frameWindow)
         useEditorBridge.getState().register(null, null)
     }
-  }, [isActiveEditor, openSceneId])
+  }, [isActiveEditor, openSceneId, iframeRef, editorRef])
 
 // Suggestion mode belongs to the writing view rather than to the button that
   // used to hold it in local state, so the editor is told whenever the shell's
   // flag moves - whoever moved it, a toolbar button or the palette.
   useEffect(() => {
     editorRef.current?.setSuggestionMode(suggestionMode, reviewerName)
-  }, [suggestionMode, reviewerName, sceneHtml])
+  }, [suggestionMode, reviewerName, sceneHtml, editorRef])
 
 // Two commands the frame owns rather than the editor: asking for a link
   // address, and driving the system speech engine. Published so the command
@@ -152,5 +159,5 @@ export function useEditorControls({ editorRef, isActiveEditor, openSceneId, sugg
       editorRef.current?.focusEditor()
     }, 60)
     return () => window.clearTimeout(at)
-  }, [pane, openSceneId])
+  }, [pane, openSceneId, isActiveEditor, iframeRef, editorRef])
 }

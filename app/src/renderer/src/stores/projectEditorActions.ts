@@ -7,6 +7,8 @@ import { type ProjectSlice } from './projectTypes'
 import { capturePendingWrites } from './pendingWrites'
 import { enqueueSceneWrite } from './sceneWriteQueue'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
+import { cancelBackgroundReads } from '../rpc/backgroundReads'
+import type { SharedSceneIdentity } from '../../../shared/sharedScene'
 
 export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
   openScene: async (chapterGuid, sceneId) => {
@@ -14,6 +16,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
   },
 
   openSceneIn: (paneId, chapterGuid, sceneId) => runSceneContext(async () => {
+    cancelBackgroundReads()
     const epoch = get().workspaceEpoch
     const shell = useShellStore.getState()
     // A scene opening is a screen closing. The binder, a search hit and a link
@@ -31,7 +34,8 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     capturePendingWrites()
     await get().flushPane(paneId)
     if (get().sceneConflict || get().editors[paneId]?.isDirty) return
-    const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
+    cancelBackgroundReads()
+    const content = await rpc.request<{ sceneId: string; html: string; hash: string; shared?: SharedSceneIdentity | null }>(
       'scenes/read',
       [chapterGuid, sceneId]
     )
@@ -45,6 +49,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
           sceneId,
           html: content.html,
           hash: content.hash,
+          shared: content.shared ?? null,
           plainText: stripHtml(content.html),
           tabs: previous.tabs.some((t) => t.sceneId === sceneId)
             ? previous.tabs
@@ -59,6 +64,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
         ...mirror(editors, paneId)
       }
     })
+    if (window.novalist.isMobile) useShellStore.getState().setMobileTab('manuscript')
   }),
 
   openSceneInSplit: async (chapterGuid, sceneId) => {
@@ -169,6 +175,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
 
   onEditorContentChanged: (paneId, html, plainText) => {
     const editor = editorPane(get(), paneId)
+    if (editor.shared) return
     const { chapterGuid, sceneId } = editor
     if (!chapterGuid || !sceneId) return
     set((s) => ({

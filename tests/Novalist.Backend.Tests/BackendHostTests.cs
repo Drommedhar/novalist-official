@@ -45,7 +45,6 @@ public class BackendHostTests
             var character = await client.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
             var characterId = character.GetProperty("id").GetString()!;
 
-            Assert.Same(files, host.Workspace.FileService);
             Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith("project.json"));
             Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith("scenes.json"));
             Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith(characterId + ".json"));
@@ -73,6 +72,54 @@ public class BackendHostTests
 
         Assert.True(result.Pong);
         Assert.False(string.IsNullOrEmpty(result.Version));
+    }
+
+    [Fact]
+    public async Task HostUsesInjectedMobileSpeechForRendererRequests()
+    {
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        using var host = new BackendHost(systemDictation: new MobileSpeech());
+        host.Attach(serverStream, serverStream);
+        using var client = CreateClient(clientStream);
+        var status = await client.InvokeAsync<Dictation.SystemDictationStatus>("dictation/systemStatus");
+        Assert.Equal("android", status.Engine);
+        Assert.False(status.Online);
+        Assert.True(Assert.Single(status.Languages).Installed);
+    }
+
+    private sealed class MobileSpeech : Dictation.ISystemDictation
+    {
+        public Task<Dictation.SystemDictationStatus> StatusAsync(CancellationToken token)
+            => Task.FromResult(new Dictation.SystemDictationStatus("android", true, false, false, [new("en", true, true)]));
+        public Task PrepareAsync(string language, CancellationToken token) => throw new NotSupportedException();
+        public Task<string> TranscribeAsync(byte[] audio, string language, CancellationToken token) => throw new NotSupportedException();
+        public void OpenSystemPanel() => throw new NotSupportedException();
+    }
+
+    [Fact]
+    public async Task CollaborationCaptureReleasesWorkspaceGateAfterFailureAndHonorsCancellation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        await using var host = new BackendHost();
+        host.Attach(serverStream, serverStream);
+        using var client = CreateClient(clientStream);
+        var dispatch = host.Workspace.DispatchSharedCapture!;
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var capture = dispatch(async () => { entered.SetResult(); await release.Task; }, ct);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => dispatch(
+                () => throw new InvalidOperationException("A cancelled capture must not run."), cancelled.Token));
+        }
+        finally { release.SetResult(); }
+        await capture;
+        await Assert.ThrowsAsync<IOException>(() => dispatch(() => throw new IOException("Capture failed."), ct));
+        Assert.True(await client.InvokeAsync<bool>("system/barrier").WaitAsync(TimeSpan.FromSeconds(5), ct));
     }
 
     [Fact]

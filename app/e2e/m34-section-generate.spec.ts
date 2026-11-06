@@ -3,8 +3,9 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync, copyFileSync } from 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { REAL_PROJECT } from './realProject'
+import { dismissTour } from './harness'
 
 /**
  * Writing one section of a Codex entry, and asking for another go at it.
@@ -53,16 +54,22 @@ test('a Codex section can be written and re-rolled from its own head', async () 
   env.NOVALIST_SETTINGS_DIR = settingsDir
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
   await evaluateWhenReady(page, async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)
+  await dismissTour(page)
 
-  // Before the extension loads there is no generator, so no button - otherwise
-  // the writer clicks something that can never answer.
+  // Extensions load during startup. Explicitly disable this fixture's
+  // generator so the unavailable phase does not depend on startup timing.
+  expect(await evaluateWhenReady(page, async () => {
+    await window.novalistRpc.request('extensions/load')
+    await window.novalistRpc.request('extensions/setEnabled', ['com.novalist.writingtoolkit', false])
+    return window.novalistRpc.request('wiki/generatorAvailable')
+  })).toBe(false)
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.waitForTimeout(1500)
   const firstEntry = page.locator('.codex-list .codex-row').first()
@@ -71,11 +78,17 @@ test('a Codex section can be written and re-rolled from its own head', async () 
   await page.waitForTimeout(1200)
   const addSection = page.locator('button', { hasText: /Abschnitt hinzuf|Add Section/ }).last()
   await expect(addSection).toBeVisible({ timeout: 15_000 })
-  await expect(page.locator('.entity-section-head button[title]')).toHaveCount(0)
+  const generate = page.locator('.entity-section-head').getByRole('button', {
+    name: /^(?:Write this section(?: with the model| again)|Diesen Abschnitt (?:vom Modell|neu) schreiben lassen)$/
+  })
+  await expect(generate).toHaveCount(0)
 
-  // Now with one loaded.
+  // Enable the generator and remount the entry to refresh its capability.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('extensions'))
-  await page.waitForTimeout(3000)
+  expect(await evaluateWhenReady(page, async () => {
+    await window.novalistRpc.request('extensions/setEnabled', ['com.novalist.writingtoolkit', true])
+    return window.novalistRpc.request('wiki/generatorAvailable')
+  })).toBe(true)
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.waitForTimeout(1200)
   await firstEntry.click()
@@ -97,7 +110,6 @@ test('a Codex section can be written and re-rolled from its own head', async () 
   await page.keyboard.press('Tab')
   await page.waitForTimeout(800)
 
-  const generate = page.locator('.entity-section-head button[title]')
   await expect(generate.nth(count - 1)).toBeVisible({ timeout: 15_000 })
   await generate.nth(count - 1).click()
 

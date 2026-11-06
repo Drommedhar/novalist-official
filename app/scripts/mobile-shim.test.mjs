@@ -2,11 +2,21 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { HostCallChannel } from '../src/renderer/src/mobile/hostCalls.ts'
 import { loadRendererSource } from './renderer-source-loader.mjs'
+import { buildSync } from 'esbuild'
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+
+const output = fileURLToPath(new URL('../out/mobile-collaboration-tests/shim.cjs', import.meta.url))
+buildSync({ stdin: { contents: "export * from './src/renderer/src/mobile/backend'; export * from './src/shared/rpcFraming'", resolveDir: fileURLToPath(new URL('..', import.meta.url)) },
+  bundle: true, platform: 'node', format: 'cjs', outfile: output })
+const { MobileBackend, encodeRpcFrame, RpcFrameDecoder } = createRequire(import.meta.url)(output)
+const frame = method => encodeRpcFrame({ jsonrpc: '2.0', id: 1, method })
+const message = bytes => new RpcFrameDecoder().push(bytes)[0]
 
 const turn = () => new Promise((resolve) => setImmediate(resolve))
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64')
 
-function fixture(t) {
+function fixture(t, userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X)') {
   const sent = []
   const channels = []
   const listeners = new Map()
@@ -27,46 +37,80 @@ function fixture(t) {
     postMessage() {},
     addEventListener: (name, callback) => listeners.set(name, callback)
   }
-  loadRendererSource('src/mobile/shim.ts', {
+  const module = loadRendererSource('src/mobile/shim.ts', {
     i18next: { default: { t: (key) => key } },
     './projectImages': { installProjectImageLoader() {}, clearProjectImageCache() {} },
-    './hostCalls': { HostCallChannel }
+    './hostCalls': { HostCallChannel },
+    './backEvents': { dispatchAndroidBack: () => false },
+    './collaboration': { installCollaborationHost: () => () => {} },
+    './backend': { MobileBackend }
   }, {
-    window, document: { visibilityState: 'visible' }, MessageChannel: Channel,
+    window, document: { visibilityState: 'visible' }, navigator: { userAgent }, MessageChannel: Channel,
     TextDecoder, Uint8Array, btoa, atob,
     setInterval: () => 1, clearInterval() {}, console: { error() {} }
   })
   t.after(() => listeners.get('pagehide')())
   const reply = (request, result = null) => window.__novalistHostResult(encode({ id: request.id, ok: true, result }))
   const hostRequests = () => sent.filter((message) => message.startsWith('{')).map((message) => JSON.parse(message))
-  return { window, channels, sent, reply, hostRequests }
+  return { window, channels, sent, reply, hostRequests, initialize: module.initializeMobileHost }
 }
+
+test('Android host identifies itself before renderer startup', async (t) => {
+  const f = fixture(t, 'Mozilla/5.0 (Linux; Android 13; sdk_gphone64_x86_64) AppleWebKit/537.36')
+  const initialized = f.initialize()
+  assert.equal(f.hostRequests()[0]?.method, 'hostCapabilities')
+  f.reply(f.hostRequests()[0], { platform: 'android', projectStorage: 'private', layout: 'phone' })
+  await initialized
+  assert.equal(f.window.novalist.platform, 'android')
+})
+
+test('Apple host retains Darwin platform keyboard behavior', async (t) => {
+  const f = fixture(t)
+  const initialized = f.initialize()
+  assert.equal(f.hostRequests()[0]?.method, 'hostCapabilities')
+  f.reply(f.hostRequests()[0], { platform: 'darwin', projectStorage: 'external', layout: 'tablet' })
+  await initialized
+  assert.equal(f.window.novalist.platform, 'darwin')
+})
+
+test('unknown mobile hosts cannot start the renderer with guessed capabilities', async (t) => {
+  const f = fixture(t)
+  const initialized = f.initialize()
+  assert.equal(f.hostRequests()[0]?.method, 'hostCapabilities')
+  f.reply(f.hostRequests()[0], { platform: 'unknown', projectStorage: 'private', layout: 'phone' })
+  await assert.rejects(initialized, /Unsupported mobile host/)
+})
 
 test('mobile RPC waits for native readiness and acknowledges byte delivery', async (t) => {
   const f = fixture(t)
   assert.equal(f.window.__novalistRecv(btoa('early')), 'unavailable')
   f.window.novalist.requestBackendPort()
-  f.channels[0].port2.onmessage({ data: new Uint8Array([1, 128, 255]) })
+  f.channels[0].port2.onmessage({ data: frame('system/ping') })
   await turn()
   assert.equal(f.sent.length, 1)
   assert.equal(f.reply(f.hostRequests()[0]), 'accepted')
   await turn()
-  assert.deepEqual([...Buffer.from(f.sent[1], 'base64')], [1, 128, 255])
-  assert.equal(f.window.__novalistRecv(btoa('reply')), 'accepted')
-  assert.deepEqual([...f.channels[0].port2.messages[0]], [...Buffer.from('reply')])
+  const request = message(Buffer.from(f.sent[1], 'base64'))
+  assert.equal(request.method, 'system/ping')
+  assert.match(request.id, /^nl\/1\/0\//)
+  const response = encodeRpcFrame({ jsonrpc: '2.0', id: request.id, result: 'connected' })
+  assert.equal(f.window.__novalistRecv(Buffer.from(response).toString('base64')), 'accepted')
+  assert.deepEqual(message(f.channels[0].port2.messages[0]), { jsonrpc: '2.0', id: 1, result: 'connected' })
 })
 
 test('replaced mobile ports cannot forward writes queued before readiness', async (t) => {
   const f = fixture(t)
   f.window.novalist.requestBackendPort()
-  f.channels[0].port2.onmessage({ data: new Uint8Array([1]) })
+  f.channels[0].port2.onmessage({ data: frame('old') })
   f.window.novalist.requestBackendPort()
-  f.channels[1].port2.onmessage({ data: new Uint8Array([2]) })
+  f.channels[1].port2.onmessage({ data: frame('current') })
   f.reply(f.hostRequests()[0])
   await turn()
   assert.equal(f.channels[0].port2.closed, true)
   assert.equal(f.hostRequests().length, 1)
-  assert.deepEqual(f.sent.filter((message) => !message.startsWith('{')), [btoa(String.fromCharCode(2))])
+  const requests = f.sent.filter(value => !value.startsWith('{')).map(value => message(Buffer.from(value, 'base64')))
+  assert.equal(requests.length, 1)
+  assert.equal(requests[0].method, 'current')
 })
 
 test('bridge failure rejects pending and future calls and pauses the renderer', async (t) => {

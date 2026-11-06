@@ -107,22 +107,26 @@ public sealed partial class EntitiesRpc
     }
 
     [JsonRpcMethod("entities/relationshipSuggestions")]
-    public async Task<RelationshipSuggestionsDto> RelationshipSuggestionsAsync()
+    public async Task<RelationshipSuggestionsDto> RelationshipSuggestionsAsync(CancellationToken cancellationToken = default)
     {
-        var characters = await _entities.LoadCharactersAsync();
+        var characters = await _entities.LoadCharactersAsync(cancellationToken);
+        var locations = await _entities.LoadLocationsAsync(cancellationToken);
+        var items = await _entities.LoadItemsAsync(cancellationToken);
+        var lore = await _entities.LoadLoreAsync(cancellationToken);
         // Every entry, not only the characters. A place is owned by somebody, a
         // relic belongs to a house, a law binds a city - and offering only
         // character names to a location's relationship row is why nobody ever
         // filled one in.
         var everyName = characters.Select(c => Compose(c.Name, c.Surname))
-            .Concat((await _entities.LoadLocationsAsync()).Select(l => l.Name))
-            .Concat((await _entities.LoadItemsAsync()).Select(i => i.Name))
-            .Concat((await _entities.LoadLoreAsync()).Select(l => l.Name));
+            .Concat(locations.Select(l => l.Name))
+            .Concat(items.Select(i => i.Name))
+            .Concat(lore.Select(l => l.Name));
 
         foreach (var type in _entities.GetCustomEntityTypes())
             everyName = everyName.Concat(
-                (await _entities.LoadCustomEntitiesAsync(type.TypeKey)).Select(e => e.Name));
+                (await _entities.LoadCustomEntitiesAsync(type.TypeKey, cancellationToken)).Select(e => e.Name));
 
+        cancellationToken.ThrowIfCancellationRequested();
         var names = everyName
             .Where(n => !string.IsNullOrWhiteSpace(n))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -131,9 +135,9 @@ public sealed partial class EntitiesRpc
         // Roles already used anywhere, so a second location can be filed the
         // same way as the first rather than by remembering the wording.
         var roles = characters.SelectMany(c => c.Relationships.Select(r => r.Role))
-            .Concat((await _entities.LoadLocationsAsync()).SelectMany(l => l.Relationships.Select(r => r.Role)))
-            .Concat((await _entities.LoadItemsAsync()).SelectMany(i => i.Relationships.Select(r => r.Role)))
-            .Concat((await _entities.LoadLoreAsync()).SelectMany(l => l.Relationships.Select(r => r.Role)))
+            .Concat(locations.SelectMany(l => l.Relationships.Select(r => r.Role)))
+            .Concat(items.SelectMany(i => i.Relationships.Select(r => r.Role)))
+            .Concat(lore.SelectMany(l => l.Relationships.Select(r => r.Role)))
             .Concat(_workspace.Settings.Settings.RelationshipPairs.Keys)
             .Where(r => !string.IsNullOrWhiteSpace(r))
             .Distinct(StringComparer.OrdinalIgnoreCase)

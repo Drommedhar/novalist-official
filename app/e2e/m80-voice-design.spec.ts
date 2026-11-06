@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { existsSync, mkdirSync, mkdtempSync, writeFileSync, copyFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { dismissTour } from './harness'
 
 /**
@@ -54,7 +54,7 @@ test('a character is given a designed voice from their Codex entry', async () =>
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   await evaluateWhenReady(
     page,

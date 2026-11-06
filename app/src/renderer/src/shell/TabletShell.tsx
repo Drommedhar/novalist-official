@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Binder } from './Binder'
 import { MainArea } from './MainArea'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
+import { MobileLibraryButton } from './MobileLibraryButton'
 import { useShellStore } from '../stores/shellStore'
 
 /**
@@ -108,6 +109,7 @@ export function TabletShell(): React.JSX.Element {
   return (
     <div className="tablet-shell">
       <div className="tablet-topbar">
+        <MobileLibraryButton />
         <button
           type="button"
           className="tablet-topbar-btn"

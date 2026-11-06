@@ -421,7 +421,7 @@ public class ExportDataTests : IDisposable
 
         await Service().ExportReportAsync(options, path);
 
-        Assert.Contains("| Mira | 1 | 1,000 | 100% |", await File.ReadAllTextAsync(path));
+        Assert.Contains($"| Mira | 1 | {1000:N0} | 100% |", await File.ReadAllTextAsync(path));
     }
 
     [Fact]

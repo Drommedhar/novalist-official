@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { dismissTour } from './harness'
 
 /**
@@ -25,7 +25,7 @@ test('export separates what from how, and targets are reachable from Settings', 
 
   const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   await evaluateWhenReady(page, async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Targets', 'Book One'])
@@ -107,7 +107,8 @@ test('export separates what from how, and targets are reachable from Settings', 
   await page.locator('.dialog-card .dialog-button.primary').click()
 
   await expect(page.locator('.dashboard-target-row')).toHaveCount(1, { timeout: 10_000 })
-  await expect(page.locator('.dashboard-target-row')).toContainText('4,000')
+  const formattedTarget = await page.evaluate(() => (4000).toLocaleString())
+  await expect(page.locator('.dashboard-target-row')).toContainText(formattedTarget)
 
   await app.close()
 })

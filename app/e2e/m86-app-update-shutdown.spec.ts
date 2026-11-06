@@ -13,6 +13,9 @@ import { basename, join } from 'node:path'
 import { launchApp, seedBook, type Harness } from './harness'
 import { buildLinuxUpdateScript } from '../src/main/linuxAppImageUpdater'
 
+// Release discovery only offers installers matching the running platform.
+const installerExtension = process.platform === 'darwin' ? 'dmg' : 'exe'
+
 type UpdateProbe = {
   openedPath: string | null
   quitCalls: number
@@ -138,7 +141,7 @@ async function releaseRendererPaneFlush(h: Harness): Promise<void> {
 test('app update stages before installer launch and quits only after acknowledgement', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-')
-  const assetName = `novalist-update-test-${Date.now()}.exe`
+  const assetName = `novalist-update-test-${Date.now()}.${installerExtension}`
 
   try {
     await h.app.evaluate(({ app, shell }) => {
@@ -267,7 +270,7 @@ test('main backend reconnects after the last detached pane closes', async () => 
 test('update button flushes live prose before acknowledging quit', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-save-')
-  const assetName = `novalist-update-save-${Date.now()}.exe`
+  const assetName = `novalist-update-save-${Date.now()}.${installerExtension}`
 
   try {
     const book = await seedBook(h, { One: ['A'] })
@@ -309,7 +312,7 @@ test('update button flushes live prose before acknowledging quit', async () => {
 test('download allows writing, then installation locks and flushes pending edits', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-download-save-')
-  const assetName = `novalist-update-download-save-${Date.now()}.exe`
+  const assetName = `novalist-update-download-save-${Date.now()}.${installerExtension}`
 
   try {
     const book = await seedBook(h, { One: ['A'] })
@@ -425,7 +428,7 @@ test('download allows writing, then installation locks and flushes pending edits
 test('update preflight times out when a save flush never settles', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-save-timeout-')
-  const assetName = `novalist-update-save-timeout-${Date.now()}.exe`
+  const assetName = `novalist-update-save-timeout-${Date.now()}.${installerExtension}`
 
   try {
     await installUpdateProbe(h, assetName, '', true)
@@ -497,7 +500,7 @@ test('update preflight times out when a save flush never settles', async () => {
 test('update stays open when the final scene save finds a conflict', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-conflict-')
-  const assetName = `novalist-update-conflict-${Date.now()}.exe`
+  const assetName = `novalist-update-conflict-${Date.now()}.${installerExtension}`
 
   try {
     const book = await seedBook(h, { One: ['A'] })
@@ -547,7 +550,7 @@ test('update stays open when the final scene save finds a conflict', async () =>
 test('installer launch failure stays visible and leaves the app running', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-error-')
-  const assetName = `novalist-update-error-${Date.now()}.exe`
+  const assetName = `novalist-update-error-${Date.now()}.${installerExtension}`
 
   try {
     await installUpdateProbe(h, assetName, 'installer launch was blocked')

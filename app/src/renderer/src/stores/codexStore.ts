@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from './projectStore'
+import type { SharedEntityFields } from '../collaboration/FocusedField'
+import type { SharedEntityProse } from '../collaboration/sharedMarkdown'
 
 export type EntityType = string
 
@@ -17,6 +19,8 @@ export interface EntitySummary {
   isWorld?: boolean
   /** True when the entry is settled: the save path refuses writes to it. */
   locked?: boolean
+  sharedFields?: SharedEntityFields
+  sharedProse?: SharedEntityProse
 }
 
 interface CodexState {
@@ -36,6 +40,22 @@ interface CodexState {
 
 let listRevision = 0
 let selectionRevision = 0
+
+export function applySharedCodexField(change: { sessionId: string; itemId: string; value: string }): void {
+  useCodexStore.setState(state => {
+    const record = state.selectedRecord
+    const shared = record?.sharedFields as SharedEntityFields | undefined
+    if (!record || shared?.sessionId !== change.sessionId) return {}
+    const entry = Object.entries(shared.fields).find(([, item]) => item === change.itemId)
+    if (!entry) return {}
+    const [key] = entry
+    const custom = !['character', 'location', 'item', 'lore'].includes(state.entityType) && key !== 'name'
+    return { selectedRecord: custom
+      ? { ...record, fields: { ...(record.fields as Record<string, string> | undefined), [key]: change.value } }
+      : { ...record, [key]: change.value } }
+  })
+  void useCodexStore.getState().refresh().catch(() => {})
+}
 
 function bookScope(): string {
   const { projectPath, activeBookId } = useProjectStore.getState()

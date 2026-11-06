@@ -2,6 +2,19 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "build Novalist Android (Debug)",
+      "detail": "Builds the shared renderer and standalone Android emulator APK.",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/eng/Build-Android.ps1"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
       "label": "build Novalist Backend (Debug)",
       "detail": "Builds the C# core the new Electron UI spawns as a child process.",
       "type": "shell",
@@ -22,6 +35,50 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "build collaboration renderer",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build"],
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare collaboration desktop",
+      "dependsOn": ["build Novalist Backend (Debug)", "build collaboration renderer"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare collaboration server",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/eng/Prepare-CollaborationServer.ps1"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "build collaboration Steam backend",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/eng/Build-CollaborationSteam.ps1"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "build collaboration Steam renderer",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build:steam"],
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare collaboration Steam app",
+      "dependsOn": ["build collaboration Steam backend", "build collaboration Steam renderer"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     },
     {
       "label": "install New UI deps",

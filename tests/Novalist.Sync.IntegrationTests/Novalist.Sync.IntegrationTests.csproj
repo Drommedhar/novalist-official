@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <SyncServerSource Condition="'$(SyncServerSource)' == ''">../../app/out/collaboration-sync-server</SyncServerSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Novalist.Sync.Client/Novalist.Sync.Client.csproj" />
+    <ProjectReference Include="../../Novalist.Backend/Novalist.Backend.csproj" />
+    <ProjectReference Include="$(SyncServerSource)/src/Novalist.Sync.Server/Novalist.Sync.Server.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
+    <PackageReference Include="Nerdbank.Streams" Version="2.13.16" />
+    <Compile Include="../Novalist.Sync.Client.Tests/TestIdentityProvider.cs" Link="TestIdentityProvider.cs" />
+  </ItemGroup>
+</Project>

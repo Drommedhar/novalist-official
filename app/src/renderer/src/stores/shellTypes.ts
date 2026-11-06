@@ -84,8 +84,10 @@ export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'set
  * actually do: three panes down the left and one tall one on the right is a
  * shape a flat list cannot hold.
  */
+export type PaneView = MainView | 'sceneNotes'
+export type DockEdge = 'left' | 'right' | 'top' | 'bottom'
 export type PaneNode =
-  | { kind: 'leaf'; id: string; view: MainView }
+  | { kind: 'leaf'; id: string; view: PaneView }
   | { kind: 'split'; id: string; direction: 'row' | 'column'; children: PaneNode[]; sizes: number[] }
 
 /** A layout the writer named and can come back to. */
@@ -186,7 +188,7 @@ export interface ShellState {
    * for the first one in that scene. Consumed by the editor pane showing it.
    */
   pendingSuggestion: { sceneId: string; changeId: string } | null
-  /** Bottom scene-notes dock (Synopsis + Notes), Scene view only. Off by default. */
+  /** Floating scene-notes window visibility; legacy key retained for saved layouts. */
   notesDockVisible: boolean
   /** One-shot prefill for the Settings search box, used to deep-link a section. */
   settingsSearch: string
@@ -199,7 +201,7 @@ export interface ShellState {
   backendVersion: string | null
   focusMode: boolean
   focusPaneId: string | null
-  focusPanel: 'binder' | 'inspector' | 'notes' | null
+  focusPanel: 'binder' | 'inspector' | null
   focusPanelTransient: boolean
   revealFocusPanel(panel: 'binder' | 'inspector'): void
   focusToolsVisible: boolean

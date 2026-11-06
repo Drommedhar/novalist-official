@@ -52,7 +52,7 @@ public sealed class BinderRpcTests : IDisposable
         var guid = FirstChapter().Guid;
         var path = _workspace.Projects.ProjectRoot!;
         await project.SetChapterDateRangeAsync(guid, start, end, "Journey");
-        project.Close();
+        await project.CloseAsync();
         var reopened = await project.OpenAsync(path);
         var chapter = Assert.Single(reopened.Chapters);
         Assert.Equal(start, chapter.DateStart);
@@ -61,7 +61,7 @@ public sealed class BinderRpcTests : IDisposable
         Assert.Equal(3, calendar.Get(start, end).Length);
 
         await project.SetChapterDateRangeAsync(guid, "", "", "");
-        project.Close();
+        await project.CloseAsync();
         reopened = await project.OpenAsync(path);
         Assert.Equal("", Assert.Single(reopened.Chapters).DateStart);
         Assert.Empty(calendar.Get(start, end));

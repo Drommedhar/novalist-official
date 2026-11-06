@@ -25,7 +25,7 @@ public sealed record CustomFieldSpecDto(
 
 public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 
-public sealed record EntitySectionDto(string Title, string Content);
+public sealed record EntitySectionDto(string Title, string? Content, string? Id = null);
 
 /// <summary>A stored entity image (display name + project-relative path) as sent
 /// by the inline overrides editor when replacing a scope's image list.</summary>
@@ -62,7 +62,13 @@ public sealed record EntitySummaryDto(
     /// and never given a parent of its own.</summary>
     bool IsWorld = false,
     /// <summary>True when this entry is settled and the save path refuses it.</summary>
-    bool Locked = false);
+    bool Locked = false)
+{
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+    public SharedEntityFieldsDto? SharedProse { get; init; }
+#endif
+}
 
 /// <summary>How this entry's name is recognised in prose. Rides along with the
 /// summary so the editor can apply the rules without a second round trip per
@@ -78,7 +84,10 @@ public sealed record StateOverrideDto(
     string? Note,
     /// <summary>From here the entry is out of the story: dead, departed,
     /// destroyed. Read by the continuity gates.</summary>
-    bool Gone = false);
+    bool Gone = false)
+{
+    public string? Id { get; init; }
+}
 
 /// <summary>What an entry is like in one context. <c>IsOverridden</c> false
 /// means the entry reads as itself and nothing else here is meaningful.</summary>

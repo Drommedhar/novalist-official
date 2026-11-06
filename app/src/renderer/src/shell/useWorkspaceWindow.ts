@@ -12,6 +12,7 @@ import { hasWorkspaceDialogDraft } from './useWorkspaceDialogGuard'
 import { clearCloseBackupHandledForQuit, createCloseBackup, markCloseBackupHandledForQuit } from './useBackupScheduler'
 import { captureMobileRecovery, clearAcknowledgedRecovery, restoreMobileRecovery, reportRecoveryError } from '../mobile/recovery'
 import { setHotkeysEnabled } from './hotkeys'
+import { useHostedSessionStore } from '../collaboration/hostedSessionStore'
 
 export type WindowCloseStage = 'flush' | 'backup'
 
@@ -84,10 +85,10 @@ async function suspendWorkspace(): Promise<void> {
 function refreshResumedWorkspace(): void {
   const state = useProjectStore.getState()
   if (!state.isLoaded) return
-  void state.loadRecents().catch(() => {})
+  if (!window.novalist.isMobile) void state.loadRecents().catch(() => {})
   void useSettingsStore.getState().load().catch(() => {})
   void state.loadDrafts().catch(() => {})
-  void useCodexStore.getState().refresh().catch(() => {})
+  if (!window.novalist.isMobile) void useCodexStore.getState().refresh().catch(() => {})
 }
 
 function useMobileBackgroundRecovery(): void {
@@ -132,10 +133,13 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
     }
     const stopWorkspace = window.novalist.onWorkspaceEvent?.(async (event) => {
       if (event.phase === 'prepare') {
-        if (closing || workspaceToken) throw new Error(i18n.t('update.workspaceBusy'))
+        if ((closing && event.preparation.reason !== 'collaboration/end') || workspaceToken) throw new Error(i18n.t('update.workspaceBusy'))
         if (hasWorkspaceDialogDraft()) throw new Error(i18n.t('update.workspaceBusy'))
         workspaceToken = event.preparation.token
         workspaceReason = event.preparation.reason
+        if (workspaceReason === 'collaboration/hostSync') {
+          useHostedSessionStore.setState({ hostSynchronizing: true, cancelling: false })
+        }
         useProjectStore.setState({ workspaceTransitionToken: workspaceToken })
         lock()
         try { await suspendWorkspace() } catch (error) { failWindowOperation(error) }
@@ -148,15 +152,16 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
           resetManuscriptWorkspace()
         })
       } else if (event.token === workspaceToken) {
-        if (event.phase === 'resumed') {
+        if (event.phase === 'resumed' && !closing) {
           await useProjectStore.getState().refreshWorkspaceEditors()
           if (!useProjectStore.getState().isLoaded) await prepareProjectLibrary()
         }
         if (event.token !== workspaceToken) return
         workspaceToken = null
+        useHostedSessionStore.setState({ hostSynchronizing: false, cancelling: false })
         useProjectStore.setState({ workspaceTransitionToken: null })
         resume()
-        if (event.phase === 'resumed') refreshResumedWorkspace()
+        if (event.phase === 'resumed' && !closing) refreshResumedWorkspace()
       }
     })
     const stopClose = window.novalist.onBeforeClose?.(async (stage) => {
@@ -177,11 +182,13 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
         else {
           await createCloseBackup()
           await flushWindowWrites()
+          await rpc.request('collaboration/end')
           markCloseBackupHandledForQuit()
         }
       } catch (error) { failWindowOperation(error) }
     })
     const stopRecovery = rpc.onRecovery((error) => {
+      useHostedSessionStore.setState({ hostSynchronizing: false, cancelling: false })
       workspaceToken = null
       closing = false
       setCloseStage(null)

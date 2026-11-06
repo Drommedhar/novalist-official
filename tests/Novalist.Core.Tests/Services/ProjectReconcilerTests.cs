@@ -2,6 +2,7 @@ using System.Text.Json;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Core.Tests.TestHelpers;
+using NSubstitute;
 using Xunit;
 
 namespace Novalist.Core.Tests.Services;
@@ -69,6 +70,230 @@ public sealed class ProjectReconcilerTests : IDisposable
         var (chapters, manifest, index) = await SetupAsync();
         var report = await ScanAsync(chapters, manifest, index);
         Assert.False(report.HasChanges);
+    }
+
+    [Fact]
+    public async Task UnchangedIndexedScenes_DoNotReadSceneBodies()
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var files = ReadProbe();
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        Assert.False(report.HasChanges);
+        await files.DidNotReceive().ReadTextAsync(Arg.Is<string>(path => path.EndsWith(".novalist")));
+    }
+
+    [Fact]
+    public async Task BatchCapableProvider_ReadsOnlyChangedAndNewScenesAfterCapturingMetadata()
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var changedPath = ScenePath("01 - A", "scene-01.novalist");
+        var newPath = ScenePath("01 - A", "scene-05.novalist");
+        await File.AppendAllTextAsync(changedPath, "<p>Updated.</p>");
+        await File.WriteAllTextAsync(newPath, FileFrontMatter.Build("new-scene") + "<p>New.</p>");
+        var files = ReadProbe(batch: true);
+        var batch = (IBatchTextReader)files;
+        batch.ReadTextsAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(async call =>
+        {
+            var paths = call.ArgAt<IReadOnlyList<string>>(0);
+            Assert.Equal(new[] { changedPath, newPath }, paths);
+            var contents = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var path in paths.Reverse())
+            {
+                await files.Received().GetFileSizeAsync(path);
+                await files.Received().GetLastWriteTimeUtcAsync(path);
+                contents[path] = await File.ReadAllTextAsync(path);
+            }
+            return (IReadOnlyDictionary<string, string>)contents;
+        });
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        Assert.Equal("new-scene", Assert.Single(report.Scenes).Id);
+        await batch.Received(1).ReadTextsAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
+        await files.DidNotReceive().ReadTextAsync(Arg.Is<string>(path => path.EndsWith(".novalist")));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BatchCapableProvider_ReadsChapterMarkersTogetherAndPreservesMissingMarkerFallback(bool renamed)
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        if (renamed) Directory.Move(Path.Combine(Chapters, "01 - A"), Path.Combine(Chapters, "01 - Renamed"));
+        File.Delete(Path.Combine(Chapters, "02 - B", ChapterMarker.FileName));
+        var files = ReadProbe(batch: true);
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        if (renamed)
+        {
+            var change = Assert.Single(report.Chapters);
+            Assert.Equal(ChapterChangeKind.Renamed, change.Kind);
+            Assert.Equal(Ch1, change.Guid);
+        }
+        else Assert.False(report.HasChanges);
+        Assert.Empty(report.Scenes);
+        var markerPaths = new[]
+        {
+            Path.Combine(Chapters, renamed ? "01 - Renamed" : "01 - A", ChapterMarker.FileName),
+            Path.Combine(Chapters, "02 - B", ChapterMarker.FileName),
+        };
+        await ((IBatchTextReader)files).Received(1).ReadExistingTextsAsync(
+            Arg.Is<IReadOnlyList<string>>(paths => paths.SequenceEqual(markerPaths)), Arg.Any<CancellationToken>());
+        await files.DidNotReceive().ReadTextAsync(Arg.Is<string>(path => path.EndsWith(ChapterMarker.FileName)));
+        await files.DidNotReceive().ExistsAsync(Arg.Is<string>(path => path.EndsWith(ChapterMarker.FileName)));
+    }
+
+    [Theory]
+    [InlineData("invalid-json")]
+    [InlineData("io")]
+    [InlineData("permission")]
+    public async Task BatchedChapterMarkerFailures_Propagate(string failure)
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var files = ReadProbe(batch: true);
+        var batch = (IBatchTextReader)files;
+        Exception expected = failure switch
+        {
+            "io" => new IOException("Provider read failed"),
+            "permission" => new UnauthorizedAccessException("Provider permission denied"),
+            _ => new JsonException(),
+        };
+        if (failure == "invalid-json")
+            await File.WriteAllTextAsync(Path.Combine(Chapters, "01 - A", ChapterMarker.FileName), "{invalid");
+        else
+            batch.ReadExistingTextsAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromException<IReadOnlyDictionary<string, string>>(expected));
+
+        var actual = await Record.ExceptionAsync(() => new ProjectReconciler(files)
+            .ScanAsync(DraftRoot, "Chapters", chapters, manifest, index));
+
+        Assert.IsType(expected.GetType(), actual);
+        await batch.Received(1).ReadExistingTextsAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData("size")]
+    [InlineData("time")]
+    public async Task ChangedSceneMetadata_ReadsOnlyTheChangedScene(string change)
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var path = ScenePath("01 - A", "scene-01.novalist");
+        var entry = index.Entries["Chapters/01 - A/scene-01.novalist"];
+        var content = await File.ReadAllTextAsync(path);
+        await File.WriteAllTextAsync(path, change == "size" ? content + "<p>Added.</p>" : content.Replace("One", "New"));
+        File.SetLastWriteTimeUtc(path, change == "size" ? entry.MtimeUtc : entry.MtimeUtc.AddMinutes(1));
+        var files = ReadProbe();
+        var originalIndex = JsonSerializer.Serialize(index);
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        Assert.False(report.HasChanges);
+        Assert.Equal(originalIndex, JsonSerializer.Serialize(index));
+        await files.Received(1).ReadTextAsync(path);
+        await files.Received(1).ReadTextAsync(Arg.Is<string>(file => file.EndsWith(".novalist")));
+    }
+
+    [Theory]
+    [InlineData("version")]
+    [InlineData("entries")]
+    [InlineData("entry")]
+    [InlineData("id")]
+    [InlineData("path")]
+    [InlineData("chapter")]
+    [InlineData("hash")]
+    [InlineData("size")]
+    [InlineData("time")]
+    [InlineData("epoch")]
+    public async Task UnusableIndex_ReadsSceneIdentityFromDisk(string invalid)
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var entry = index.Entries["Chapters/01 - A/scene-01.novalist"];
+        switch (invalid)
+        {
+            case "version": index.Version = 2; break;
+            case "entries": index.Entries = null!; break;
+            case "entry": index.Entries["Chapters/01 - A/scene-01.novalist"] = null!; break;
+            case "id": entry.Id = "stale-id"; break;
+            case "path": manifest.Chapters[Ch1][0].FileName = "old-name.novalist"; break;
+            case "chapter": manifest.Chapters[Ch2].Add(manifest.Chapters[Ch1][0]); manifest.Chapters[Ch1].RemoveAt(0); break;
+            case "hash": entry.Hash = string.Empty; break;
+            case "size": entry.Size = 0; break;
+            case "time": entry.MtimeUtc = default; break;
+            case "epoch": entry.MtimeUtc = DateTime.UnixEpoch; break;
+        }
+        var files = ReadProbe();
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        await files.Received(1).ReadTextAsync(ScenePath("01 - A", "scene-01.novalist"));
+        Assert.DoesNotContain(report.Scenes, scene => scene.Kind == SceneChangeKind.New);
+    }
+
+    [Theory]
+    [InlineData("size")]
+    [InlineData("time")]
+    public async Task UnavailableFileMetadata_ReadsSceneIdentityFromDisk(string unavailable)
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var path = ScenePath("01 - A", "scene-01.novalist");
+        var files = ReadProbe();
+        if (unavailable == "size") files.GetFileSizeAsync(path).Returns(0L);
+        else files.GetLastWriteTimeUtcAsync(path).Returns(DateTime.UnixEpoch);
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        Assert.False(report.HasChanges);
+        await files.Received(1).ReadTextAsync(path);
+    }
+
+    [Theory]
+    [InlineData("scene-00.novalist")]
+    [InlineData("scene-08.novalist")]
+    public async Task DuplicateOfIndexedScene_IsDetectedRegardlessOfSortOrder(string name)
+    {
+        var (chapters, manifest, index) = await SetupAsync();
+        var original = ScenePath("01 - A", "scene-01.novalist");
+        File.Copy(original, ScenePath("01 - A", name));
+        var files = ReadProbe();
+
+        var report = await new ProjectReconciler(files).ScanAsync(DraftRoot, "Chapters", chapters, manifest, index);
+
+        Assert.Equal("DuplicateSceneId", Assert.Single(report.Conflicts).Kind);
+        await files.DidNotReceive().ReadTextAsync(original);
+        await files.Received(1).ReadTextAsync(ScenePath("01 - A", name));
+    }
+
+    private IFileService ReadProbe(bool batch = false)
+    {
+        var files = batch ? Substitute.For<IFileService, IBatchTextReader>() : Substitute.For<IFileService>();
+        files.CombinePath(Arg.Any<string[]>()).Returns(call => Path.Combine(call.Arg<string[]>()));
+        files.GetFileName(Arg.Any<string>()).Returns(call => Path.GetFileName(call.Arg<string>()));
+        files.ExistsAsync(Arg.Any<string>()).Returns(call => _fs.ExistsAsync(call.Arg<string>()));
+        files.GetDirectoriesAsync(Arg.Any<string>()).Returns(call => _fs.GetDirectoriesAsync(call.Arg<string>()));
+        files.GetFilesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>())
+            .Returns(call => _fs.GetFilesAsync(call.ArgAt<string>(0), call.ArgAt<string>(1), call.ArgAt<bool>(2)));
+        files.ReadTextAsync(Arg.Any<string>()).Returns(call => _fs.ReadTextAsync(call.Arg<string>()));
+        files.GetFileSizeAsync(Arg.Any<string>()).Returns(call => _fs.GetFileSizeAsync(call.Arg<string>()));
+        files.GetLastWriteTimeUtcAsync(Arg.Any<string>()).Returns(call => _fs.GetLastWriteTimeUtcAsync(call.Arg<string>()));
+        if (files is IBatchTextReader reader)
+        {
+            reader.ReadTextsAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+                .Returns(call => ReadContentsAsync(call.ArgAt<IReadOnlyList<string>>(0), existingOnly: false));
+            reader.ReadExistingTextsAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+                .Returns(call => ReadContentsAsync(call.ArgAt<IReadOnlyList<string>>(0), existingOnly: true));
+        }
+        return files;
+    }
+
+    private async Task<IReadOnlyDictionary<string, string>> ReadContentsAsync(IReadOnlyList<string> paths, bool existingOnly)
+    {
+        var contents = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var path in paths.Reverse())
+            if (!existingOnly || await _fs.ExistsAsync(path)) contents[path] = await _fs.ReadTextAsync(path);
+        return contents;
     }
 
     // ── Scenes ──

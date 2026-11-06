@@ -5,11 +5,10 @@
  * per-scene label colour, and no way to ask "colour these by viewpoint" - so
  * seeing that four scenes in a row are all Mira's meant reading four cards.
  *
- * Only `label` is authored. The rest are derived from a value the writer
- * already typed (a viewpoint, an act, a chapter status) and coloured by hash,
- * so a dimension works the moment it has values and never needs configuring.
+ * Labels and scene stages use the writer's configured colors. Viewpoint and
+ * act colors are derived by hash so they need no extra configuration.
  */
-export const COLOUR_DIMENSIONS = ['none', 'label', 'pov', 'act', 'status'] as const
+export const COLOUR_DIMENSIONS = ['none', 'label', 'stage', 'pov', 'act'] as const
 
 export type ColourDimension = (typeof COLOUR_DIMENSIONS)[number]
 
@@ -30,7 +29,7 @@ interface ColourInputs {
   labelColor?: string | null
   pov?: string | null
   act?: string | null
-  status?: string | null
+  stageColor?: string | null
 }
 
 /** The card's colour under the chosen dimension, or undefined for no band. */
@@ -39,12 +38,12 @@ export function sceneColour(
   scene: ColourInputs
 ): string | undefined {
   if (dimension === 'none') return undefined
-  // The label is the one dimension the writer picked the colour for, so it is
-  // used as written rather than hashed.
+  // Labels and stages use the colours the writer configured.
   if (dimension === 'label') return scene.labelColor || undefined
+  if (dimension === 'stage') return scene.stageColor || undefined
 
   const value =
-    dimension === 'pov' ? scene.pov : dimension === 'act' ? scene.act : scene.status
+    dimension === 'pov' ? scene.pov : scene.act
   // A scene with nothing said gets no band. Colouring it would claim a
   // viewpoint or an act that nobody has decided yet.
   return value && value.trim().length > 0 ? autoColour(value.trim()) : undefined

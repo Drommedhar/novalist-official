@@ -20,29 +20,30 @@ public sealed partial class EntitiesRpc
     }
 
     [JsonRpcMethod("entities/list")]
-    public async Task<EntitySummaryDto[]> ListAsync(string type)
+    public async Task<EntitySummaryDto[]> ListAsync(string type, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (IsCustomType(type))
         {
             var references = _entities.GetCustomEntityTypes().Single(def => def.TypeKey == type).DefaultFields
                 .Where(field => field.Type == CustomPropertyType.EntityRefList).Select(field => field.Key).ToHashSet();
-            return (await _entities.LoadCustomEntitiesAsync(type))
+            return (await _entities.LoadCustomEntitiesAsync(type, cancellationToken))
                 .Select(c => Summary(
                     c, c.Fields.FirstOrDefault(field => !references.Contains(field.Key) && !string.IsNullOrWhiteSpace(field.Value)).Value ?? string.Empty))
                 .ToArray();
         }
         return type switch
         {
-            "character" => (await _entities.LoadCharactersAsync())
+            "character" => (await _entities.LoadCharactersAsync(cancellationToken))
                 .Select(c => Summary(c, c.Role))
                 .ToArray(),
-            "location" => (await _entities.LoadLocationsAsync())
+            "location" => (await _entities.LoadLocationsAsync(cancellationToken))
                 .Select(l => Summary(l, l.Description))
                 .ToArray(),
-            "item" => (await _entities.LoadItemsAsync())
+            "item" => (await _entities.LoadItemsAsync(cancellationToken))
                 .Select(i => Summary(i, i.Description))
                 .ToArray(),
-            "lore" => (await _entities.LoadLoreAsync())
+            "lore" => (await _entities.LoadLoreAsync(cancellationToken))
                 .Select(l => Summary(l, l.Description))
                 .ToArray(),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
@@ -56,11 +57,14 @@ public sealed partial class EntitiesRpc
     /// colour over the right one had no answer inside the app.
     /// </summary>
     [JsonRpcMethod("entities/history")]
-    public EntityRevisionDto[] History(string id)
-        => [.. new EntityHistory(_workspace.Projects).List(id)
-            .Select(r => new EntityRevisionDto(
-                r.Id, r.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
-                r.SizeBytes))];
+    public EntityRevisionDto[] History(string id, bool worldBible = false)
+    {
+        var legacy = new EntityHistory(_workspace.Projects).List(id);
+        var revisions = worldBible ? legacy.Concat(EntityHistory.ForEntity(_workspace.Projects, true).List(id)
+            .Select(revision => revision with { Id = "world/" + revision.Id })) : legacy;
+        return [.. revisions.OrderByDescending(revision => revision.SavedAt).Select(revision => new EntityRevisionDto(
+            revision.Id, revision.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture), revision.SizeBytes))];
+    }
 
     /// <summary>
     /// Puts a revision back. The state being replaced is recorded first by the
@@ -69,7 +73,15 @@ public sealed partial class EntitiesRpc
     [JsonRpcMethod("entities/restoreRevision")]
     public async Task<JsonElement> RestoreRevisionAsync(string type, string id, string revisionId)
     {
-        var stored = await new EntityHistory(_workspace.Projects).ReadAsync(id, revisionId)
+        var existing = await FindAnyAsync(type, id) ?? throw Unknown(id);
+        RefuseIfLocked(existing);
+#if NOVALIST_COLLABORATION
+        if (_workspace.SharedEntityFields(existing) is not null)
+            throw new InvalidOperationException("End collaboration before restoring an entire Codex revision.");
+#endif
+        var worldRevision = revisionId.StartsWith("world/", StringComparison.Ordinal);
+        if (worldRevision && !existing.IsWorldBible) throw new InvalidOperationException("That revision belongs to the World Bible.");
+        var stored = await EntityHistory.ForEntity(_workspace.Projects, worldRevision).ReadAsync(id, worldRevision ? revisionId[6..] : revisionId)
             ?? throw new InvalidOperationException("That revision is no longer there.");
 
         // Deserialised as the type the caller says it is, then saved the way any
@@ -78,19 +90,19 @@ public sealed partial class EntitiesRpc
         switch (type)
         {
             case "character":
-                await _entities.SaveCharacterAsync(Read<Core.Models.CharacterData>(stored, id));
+                await _entities.SaveCharacterAsync(Read<Core.Models.CharacterData>(stored, id, existing.IsWorldBible));
                 break;
             case "location":
-                await _entities.SaveLocationAsync(Read<Core.Models.LocationData>(stored, id));
+                await _entities.SaveLocationAsync(Read<Core.Models.LocationData>(stored, id, existing.IsWorldBible));
                 break;
             case "item":
-                await _entities.SaveItemAsync(Read<Core.Models.ItemData>(stored, id));
+                await _entities.SaveItemAsync(Read<Core.Models.ItemData>(stored, id, existing.IsWorldBible));
                 break;
             case "lore":
-                await _entities.SaveLoreAsync(Read<Core.Models.LoreData>(stored, id));
+                await _entities.SaveLoreAsync(Read<Core.Models.LoreData>(stored, id, existing.IsWorldBible));
                 break;
             default:
-                await _entities.SaveCustomEntityAsync(Read<Core.Models.CustomEntityData>(stored, id));
+                await _entities.SaveCustomEntityAsync(Read<Core.Models.CustomEntityData>(stored, id, existing.IsWorldBible));
                 break;
         }
 
@@ -101,12 +113,12 @@ public sealed partial class EntitiesRpc
     /// A stored revision, with its id forced back to the entry being restored -
     /// a file edited by hand should not be able to write over a different entry.
     /// </summary>
-    private static T Read<T>(string json, string id) where T : class
+    private static T Read<T>(string json, string id, bool worldBible) where T : class, IEntityData
     {
         var entity = JsonSerializer.Deserialize<T>(json, JsonOptions)
             ?? throw new InvalidOperationException("That revision could not be read.");
-        var idProperty = typeof(T).GetProperty("Id");
-        idProperty?.SetValue(entity, id);
+        typeof(T).GetProperty("Id")?.SetValue(entity, id);
+        entity.IsWorldBible = worldBible;
         return entity;
     }
 
@@ -115,16 +127,16 @@ public sealed partial class EntitiesRpc
     {
         if (IsCustomType(type))
         {
-            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+            var custom = await _entities.LoadCustomEntityAsync(type, id)
                 ?? throw Unknown(id);
             return WithResolvedImages(custom);
         }
         object? entity = type switch
         {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
-            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            "character" => await _entities.LoadCharacterAsync(id),
+            "location" => await _entities.LoadLocationAsync(id),
+            "item" => await _entities.LoadItemAsync(id),
+            "lore" => await _entities.LoadLoreEntryAsync(id),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
         return WithResolvedImages(entity ?? throw Unknown(id));
@@ -184,7 +196,13 @@ public sealed partial class EntitiesRpc
     [JsonRpcMethod("entities/update")]
     public async Task<JsonElement> UpdateAsync(string type, string id, Dictionary<string, string> fields)
     {
-        RefuseIfLocked(await FindAnyAsync(type, id));
+        var existing = await FindAnyAsync(type, id);
+        RefuseIfLocked(existing);
+#if NOVALIST_COLLABORATION
+        if (existing is not null && _workspace.SharedEntityFields(existing) is { } shared &&
+            fields.Keys.Any(key => shared.Fields.Keys.Contains(key, IsCustomType(type) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Shared Codex fields must be saved through their focused editing lease.");
+#endif
 
         if (IsCustomType(type))
         {
@@ -275,14 +293,14 @@ public sealed partial class EntitiesRpc
     private async Task<Core.Models.IEntityData?> FindEntityAsync(string type, string id)
     {
         if (IsCustomType(type))
-            return (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id);
+            return await _entities.LoadCustomEntityAsync(type, id);
 
         return type switch
         {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
-            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            "character" => await _entities.LoadCharacterAsync(id),
+            "location" => await _entities.LoadLocationAsync(id),
+            "item" => await _entities.LoadItemAsync(id),
+            "lore" => await _entities.LoadLoreEntryAsync(id),
             _ => null
         };
     }
@@ -315,10 +333,10 @@ public sealed partial class EntitiesRpc
         var image = entity.Images.FirstOrDefault();
         var firstName = character?.Name;
         var surname = character?.Surname;
-        return new(entity.Id, name, detail, entity.IsWorldBible,
+        var summary = new EntitySummaryDto(entity.Id, name, detail, entity.IsWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
             entity.Aliases,
-            NullIfEmpty(character?.Group), NullIfEmpty(character?.Gender), NullIfEmpty(location?.Parent),
+            NullIfEmpty(entity.Group), NullIfEmpty(character?.Gender), NullIfEmpty(location?.Parent),
             // The bare first name is an extra hover/mention target ("Liam" for
             // "Liam Calder"); null when it equals the composed display name.
             NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null,
@@ -329,6 +347,10 @@ public sealed partial class EntitiesRpc
             MatchDto(entity.Match, name, entity.Aliases, firstName, surname),
             location?.IsWorld ?? false,
             entity.Locked);
+#if NOVALIST_COLLABORATION
+        summary = summary with { SharedFields = _workspace.SharedEntityFields(entity), SharedProse = _workspace.SharedEntityProse(entity) };
+#endif
+        return summary;
     }
 
     /// <summary>Projects the stored match settings, precomputing the plural forms

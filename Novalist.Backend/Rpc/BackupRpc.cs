@@ -13,9 +13,9 @@ public sealed class BackupRpc
     }
 
     [JsonRpcMethod("backup/create")]
-    public async Task<BackupDto?> CreateAsync(string trigger)
+    public async Task<BackupDto?> CreateAsync(string trigger, CancellationToken cancellationToken = default)
     {
-        var info = await (await _workspace.GetBackupServiceAsync()).CreateAsync(trigger);
+        var info = await (await _workspace.GetBackupServiceAsync()).CreateAsync(trigger, cancellationToken);
         return info == null ? null : ToDto(info);
     }
 
@@ -48,6 +48,9 @@ public sealed class BackupRpc
     [JsonRpcMethod("backup/restore")]
     public async Task<bool> RestoreAsync(string backupId)
     {
+#if NOVALIST_COLLABORATION
+        _workspace.RequireNoSharedSession();
+#endif
         var root = _workspace.Projects.ProjectRoot;
         if (string.IsNullOrWhiteSpace(root))
             return false;

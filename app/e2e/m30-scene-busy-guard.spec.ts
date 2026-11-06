@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { REAL_PROJECT } from './realProject'
 
 /**
@@ -33,9 +33,9 @@ test('the editor tells the backend which scene it holds', async () => {
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
   await evaluateWhenReady(page, async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)

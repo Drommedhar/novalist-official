@@ -8,7 +8,12 @@ public sealed class ChapterDetailInfo
     public string Title { get; init; } = string.Empty;
     public int Order { get; init; }
 
-    /// <summary>"Outline", "FirstDraft", "Revised", "Edited" or "Final".</summary>
+    /// <summary>Legacy chapter status: "Outline", "FirstDraft", "Revised",
+    /// "Edited" or "Final".</summary>
+    /// <remarks>Deprecated and no longer supported as an app workflow. Retained
+    /// for existing integrations and legacy queries. Stored independently of
+    /// scene stages; not a calculated chapter state.</remarks>
+    [Obsolete("Chapter status is deprecated and no longer supported as an app workflow. Use scene stages for writing state. Retained only for compatibility; legacy reads and writes still work.", false)]
     public string Status { get; init; } = string.Empty;
 
     /// <summary>The act label, or empty for a chapter in no act.</summary>
@@ -49,6 +54,7 @@ public sealed class SceneMetadataPatch
     public string? Emotion { get; init; }
     public string? Conflict { get; init; }
     public int? Intensity { get; init; }
+    /// <summary>Scene writing-stage key, or empty to clear it. Null leaves it unchanged.</summary>
     public string? Stage { get; init; }
     public string? NarrativeMode { get; init; }
     public string? DateStart { get; init; }
@@ -90,7 +96,7 @@ public sealed class SceneDetailInfo
     /// <summary>The central conflict, where one is recorded.</summary>
     public string Conflict { get; init; } = string.Empty;
 
-    /// <summary>Story-structure stage label, or empty when unset; values follow the book's chosen structure.</summary>
+    /// <summary>Scene writing-stage key, or empty when unset; values come from the book's configured scene stages.</summary>
     public string Stage { get; init; } = string.Empty;
 
     /// <summary>

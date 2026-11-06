@@ -57,6 +57,19 @@ public sealed class SystemDictationTests : IDisposable
         Assert.Throws<InvalidOperationException>(rpc.OpenSystemPanel);
     }
 
+    [Fact]
+    public async Task AndroidProviderNamesItsOfflineDestination()
+    {
+        var bridge = new Bridge { Reply = """
+            {"engine":"android","available":true,"online":false,"usesSystemPanel":false,
+             "languages":[{"language":"en","supported":true,"installed":true}]}
+            """ };
+        var rpc = new DictationRpc(_workspace, new SystemDictation("apple", bridge, () => { }));
+        var provider = Assert.Single(await rpc.Providers());
+        Assert.Equal("Android on-device speech", provider.AudioDestination);
+        Assert.False((await rpc.SystemStatusAsync(default)).Online);
+    }
+
     [Theory]
     [InlineData("en")]
     [InlineData("de")]
@@ -86,6 +99,9 @@ public sealed class SystemDictationTests : IDisposable
     {
         var bridge = new Bridge();
         var system = new SystemDictation("unsupported", bridge, () => throw new Exception());
+        var provider = Assert.Single(await new DictationRpc(_workspace, system).Providers());
+        Assert.False(provider.Available);
+        Assert.Equal("Unavailable", provider.AudioDestination);
         var status = await system.StatusAsync(default);
         Assert.False(status.Available);
         Assert.Empty(status.Languages);

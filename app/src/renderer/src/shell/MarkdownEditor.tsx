@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Bold,
@@ -13,7 +13,7 @@ import {
   Strikethrough,
   Table
 } from 'lucide-react'
-import { EditorState, RangeSetBuilder, type ChangeSpec, type Range, type Extension } from '@codemirror/state'
+import { Compartment, EditorState, RangeSetBuilder, type ChangeSpec, type Range, type Extension } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
@@ -29,6 +29,11 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { HighlightStyle, syntaxHighlighting, syntaxTree } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 import './markdownEditor.css'
+import type { FieldBinding } from '../collaboration/FocusedField'
+import { openSharedMarkdown } from '../collaboration/sharedMarkdown'
+import type { SharedMarkdownSession } from '../collaboration/SharedMarkdownSession'
+import { SharedEditorPresence } from '../collaboration/SharedEditorPresence'
+import { registerPendingWrite, retainPendingWrite } from '../stores/pendingWrites'
 
 /**
  * The markdown fields in this app (Codex sections and overrides, research
@@ -300,6 +305,10 @@ export function MarkdownEditor({
   minRows = 3,
   placeholder,
   ariaLabel,
+  shared,
+  sharedSession: suppliedSession,
+  readOnly = false,
+  showToolbar = true,
   className = ''
 }: {
   value: string
@@ -310,12 +319,25 @@ export function MarkdownEditor({
   minRows?: number
   placeholder?: string
   ariaLabel?: string
+  shared?: FieldBinding
+  /** An enclosing surface owns this live document across editor mode changes. */
+  sharedSession?: SharedMarkdownSession
+  readOnly?: boolean
+  showToolbar?: boolean
   className?: string
 }): React.JSX.Element {
   const { t } = useTranslation()
   const host = useRef<HTMLDivElement | null>(null)
   const view = useRef<EditorView | null>(null)
   const extensions = useRef<Extension[]>([])
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const sharedSession = useRef<SharedMarkdownSession | null>(null)
+  const [editingPermission] = useState(() => new Compartment())
+  const readOnlyRef = useRef(readOnly)
+  readOnlyRef.current = readOnly
+  const createState = (doc: string): EditorState => EditorState.create({ doc,
+    extensions: [...extensions.current, editingPermission.of(EditorState.readOnly.of(readOnlyRef.current))] })
   // Kept in refs so the CodeMirror extensions can stay static: rebuilding the
   // view on every keystroke would lose the selection and the undo history.
   const onChangeRef = useRef(onChange)
@@ -325,18 +347,29 @@ export function MarkdownEditor({
 
   useEffect(() => {
     if (!host.current) return
-    extensions.current = [
-        history(),
+    let cancelled = false
+    let collaboration: SharedMarkdownSession | undefined
+    let presence: SharedEditorPresence | undefined
+    let unregister: (() => void) | undefined
+    let created: EditorView | undefined
+    const initialize = async (): Promise<void> => {
+      if (shared) {
+        collaboration = suppliedSession ?? await openSharedMarkdown(shared, failed => { if (!cancelled) setFailed(failed) })
+        if (cancelled) { if (!suppliedSession) collaboration.detach(); return }
+        sharedSession.current = collaboration
+      }
+      extensions.current = [
+        collaboration ? collaboration.extension : history(),
         keymap.of([
           {
             key: 'Mod-b',
-            run: (v) => (applyMarkdownAction(v, 'bold'), true)
+            run: v => { if (!readOnlyRef.current) applyMarkdownAction(v, 'bold'); return true }
           },
           {
             key: 'Mod-i',
-            run: (v) => (applyMarkdownAction(v, 'italic'), true)
+            run: v => { if (!readOnlyRef.current) applyMarkdownAction(v, 'italic'); return true }
           },
-          ...historyKeymap,
+          ...(collaboration ? [] : historyKeymap),
           // Without Enter/Backspace etc. the field would not accept newlines.
           ...defaultKeymap.filter((b) => b.key !== 'Mod-i' && b.key !== 'Mod-b')
         ]),
@@ -346,34 +379,76 @@ export function MarkdownEditor({
         EditorView.lineWrapping,
         ...(placeholder ? [cmPlaceholder(placeholder)] : []),
         EditorView.updateListener.of((update) => {
-          if (update.docChanged) onChangeRef.current(update.state.doc.toString())
-          if (update.focusChanged && !update.view.hasFocus) onBlurRef.current?.()
+          if (!collaboration && update.docChanged) onChangeRef.current(update.state.doc.toString())
+          if (!collaboration && update.focusChanged && !update.view.hasFocus) onBlurRef.current?.()
         }),
         EditorView.contentAttributes.of(ariaLabel ? { 'aria-label': ariaLabel } : {})
       ]
-    const state = EditorState.create({ doc: value, extensions: extensions.current })
-    const created = new EditorView({ state, parent: host.current })
-    view.current = created
+      const state = createState(collaboration?.text ?? value)
+      created = new EditorView({ state, parent: host.current! })
+      created.contentDOM.setAttribute('aria-readonly', String(readOnlyRef.current))
+      view.current = created
+      if (collaboration && shared) {
+        const session = collaboration
+        session.attach(created)
+        unregister = registerPendingWrite(() => session.flush())
+        presence = new SharedEditorPresence({ ...shared, state: '', presence: true }, session, () => created?.hasFocus === true)
+        await session.refresh()
+      }
+    }
+    void initialize().catch(() => { if (!cancelled) setFailed(true) })
     return () => {
-      created.destroy()
+      cancelled = true
+      unregister?.()
+      presence?.close()
+      created?.destroy()
+      if (collaboration) {
+        const session = collaboration
+        if (suppliedSession) session.detachView()
+        else {
+          session.detach()
+          retainPendingWrite(`shared-markdown:${crypto.randomUUID()}`, () => session.flush())
+        }
+      }
+      sharedSession.current = null
       view.current = null
     }
     // Built once: `value` is synced by the effect below, not by re-creating it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [shared?.sessionId, shared?.itemId, suppliedSession, attempt])
+
+  useEffect(() => {
+    if (ariaLabel) view.current?.contentDOM.setAttribute('aria-label', ariaLabel)
+    else view.current?.contentDOM.removeAttribute('aria-label')
+  }, [ariaLabel])
+
+  useEffect(() => {
+    const editor = view.current
+    if (!editor) return
+    editor.dispatch({ effects: editingPermission.reconfigure(EditorState.readOnly.of(readOnly)) })
+    editor.contentDOM.setAttribute('aria-readonly', String(readOnly))
+  }, [readOnly, editingPermission])
+
+  const retry = async (): Promise<void> => {
+    try {
+      if (sharedSession.current) { await sharedSession.current.flush(); await sharedSession.current.refresh() }
+      else setAttempt(value => value + 1)
+      setFailed(false)
+    } catch { setFailed(true) }
+  }
 
   // Adopt an externally changed value (switching entity, discarding an
   // override), resetting undo ownership when the authoritative value changes.
   useEffect(() => {
     const v = view.current
-    if (!v) return
+    if (!v || shared) return
     const current = v.state.doc.toString()
     if (current === value) return
-    v.setState(EditorState.create({ doc: value, extensions: extensions.current }))
-  }, [value])
+    v.setState(createState(value))
+  }, [value, shared])
 
   const act = useCallback((action: MarkdownAction) => {
-    if (view.current) applyMarkdownAction(view.current, action)
+    if (view.current && !readOnlyRef.current) applyMarkdownAction(view.current, action)
   }, [])
 
   const buttons: { action: MarkdownAction; icon: React.ReactNode; labelKey: string }[] = [
@@ -400,12 +475,14 @@ export function MarkdownEditor({
 
   return (
     <div className={`md-editor ${className}`.trim()}>
-      <div className="md-toolbar" role="toolbar" aria-label={t('markdown.toolbar')}>
+      {failed && <div role="alert">{t('collaboration.editorError')} <button type="button" onClick={() => void retry()}>{t('collaboration.retryField')}</button></div>}
+      {showToolbar && <div className="md-toolbar" role="toolbar" aria-label={t('markdown.toolbar')}>
         {buttons.map((b) => (
           <button
             key={b.action}
             type="button"
             className="md-toolbar-btn"
+            disabled={readOnly}
             title={t(b.labelKey)}
             aria-label={t(b.labelKey)}
             // The editor keeps focus and the selection, so the action applies
@@ -416,7 +493,7 @@ export function MarkdownEditor({
             {b.icon}
           </button>
         ))}
-      </div>
+      </div>}
       <div
         className="md-surface"
         style={{ minHeight: `calc(${minRows} * var(--nl-leading-body) * 1em)` }}

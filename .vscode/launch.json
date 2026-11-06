@@ -2,6 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Android: Phone (Android 16, Play Store)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/eng/Run-Android.ps1\" -Device Phone",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build Novalist Android (Debug)"
+    },
+    {
+      "name": "Android: Tablet (Android 16, Play Store)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/eng/Run-Android.ps1\" -Device Tablet",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build Novalist Android (Debug)"
+    },
+    {
       "name": "New UI: Main Process",
       "type": "node",
       "request": "launch",
@@ -39,6 +55,83 @@
       ]
     },
     {
+      "name": "Collaboration: Local server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/scripts/collaboration-manual-server.mjs",
+      "runtimeArgs": ["--experimental-strip-types"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "preLaunchTask": "prepare collaboration server",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Collaboration: Local server (no account)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/scripts/collaboration-manual-server.mjs",
+      "runtimeArgs": ["--experimental-strip-types"],
+      "args": ["--anonymous"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "preLaunchTask": "prepare collaboration server",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Collaboration: Owner",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
+      "program": "${workspaceFolder}/app/out/main/index.js",
+      "args": ["--user-data-dir=${workspaceFolder}/app/out/manual-owner/profile"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-owner/settings",
+        "NOVALIST_BACKEND_PATH": "${workspaceFolder}/Novalist.Backend/bin/Debug/net10.0/Novalist.Backend.exe",
+        "NOVALIST_DISABLE_SELF_UPDATE": "1"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Collaboration: Guest",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
+      "program": "${workspaceFolder}/app/out/main/index.js",
+      "args": ["--user-data-dir=${workspaceFolder}/app/out/manual-guest/profile"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-guest/settings",
+        "NOVALIST_BACKEND_PATH": "${workspaceFolder}/Novalist.Backend/bin/Debug/net10.0/Novalist.Backend.exe",
+        "NOVALIST_DISABLE_SELF_UPDATE": "1"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Collaboration: Steam (App ID 480)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
+      "program": "${workspaceFolder}/app/out/main/index.js",
+      "args": ["--user-data-dir=${workspaceFolder}/app/out/manual-steam/profile"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "preLaunchTask": "prepare collaboration Steam app",
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-steam/settings",
+        "NOVALIST_BACKEND_PATH": "${workspaceFolder}/app/out/collaboration-steam-build/bin/Novalist.Backend/debug/Novalist.Backend.exe",
+        "NOVALIST_STEAM_APP_ID": "480",
+        "SteamAppId": "480",
+        "SteamGameId": "480"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
       "name": "New UI: Attach to Backend (C#)",
       "type": "coreclr",
       "request": "attach",
@@ -47,6 +140,18 @@
     }
   ],
   "compounds": [
+    {
+      "name": "Collaboration: Local server (no account) + 2 apps",
+      "configurations": ["Collaboration: Local server (no account)", "Collaboration: Owner", "Collaboration: Guest"],
+      "preLaunchTask": "prepare collaboration desktop",
+      "stopAll": false
+    },
+    {
+      "name": "Collaboration: Local server + 2 apps",
+      "configurations": ["Collaboration: Local server", "Collaboration: Owner", "Collaboration: Guest"],
+      "preLaunchTask": "prepare collaboration desktop",
+      "stopAll": false
+    },
     {
       "name": "New UI: Full Stack (main + renderer)",
       "configurations": ["New UI: Main Process", "New UI: Renderer Process"],

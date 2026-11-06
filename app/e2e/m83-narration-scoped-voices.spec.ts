@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { dismissTour } from './harness'
 
 /**
@@ -39,7 +39,7 @@ test('a voice can be set over one stretch of the book, from the cast rail', asyn
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   const guids = await evaluateWhenReady(
     page,

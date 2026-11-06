@@ -13,11 +13,12 @@ function selectedIds(value: string): string[] | null {
   }
 }
 
-export function EntityReferenceList({ targetType, label, value, onChange }: {
+export function EntityReferenceList({ targetType, label, value, onChange, editable = true }: {
   targetType: string
   label: string
   value: string
   onChange: (value: string) => void | Promise<void>
+  editable?: boolean
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [entries, setEntries] = useState<{ id: string; name: string }[]>([])
@@ -36,12 +37,16 @@ export function EntityReferenceList({ targetType, label, value, onChange }: {
   }, [targetType])
 
   const change = async (next: string[]): Promise<void> => {
+    if (!editable) return
     const serialized = JSON.stringify(next)
     setPendingValue(serialized)
-    setBusy(true)
     setError('')
     try {
-      await onChange(serialized)
+      const pending = onChange(serialized)
+      if (pending) {
+        setBusy(true)
+        await pending
+      }
     } catch (cause) {
       setError(String(cause))
     } finally {
@@ -56,12 +61,12 @@ export function EntityReferenceList({ targetType, label, value, onChange }: {
     {error && <p role="alert">{error}</p>}
     {ids === null ? <>
       <p role="alert">{t('entityTypeManager.invalidReferenceList')}</p>
-      <button className="dialog-button" onClick={() => void change([])} disabled={busy}>
+      <button className="dialog-button" onClick={() => void change([])} disabled={busy} aria-disabled={!editable}>
         {t('entityTypeManager.clearReferences')}
       </button>
     </> : choices.length === 0 ? <span>{t('codexHub.emptyHint')}</span> : choices.map(entry =>
       <label key={entry.id}>
-        <input type="checkbox" checked={ids.includes(entry.id)} disabled={busy}
+        <input type="checkbox" checked={ids.includes(entry.id)} disabled={busy} aria-disabled={!editable}
           onChange={event => void change(event.target.checked ? [...ids, entry.id] : ids.filter(id => id !== entry.id))} />
         {entry.name}
       </label>

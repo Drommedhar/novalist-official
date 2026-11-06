@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { enterWriting } from './harness'
+import { waitForAppReady } from './appReady'
 
 /**
  * The writer's own replacement rules, as they type.
@@ -24,9 +25,9 @@ test('a writer can add their own replacement rules, plain and pattern', async ()
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   await page.evaluate(async (parent) => {
     const rpc = window.novalistRpc
@@ -155,9 +156,9 @@ test('the preview beside a rule agrees with what the editor actually types', asy
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   await page.evaluate(async (parent) => {
     const rpc = window.novalistRpc

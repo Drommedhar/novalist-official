@@ -6,6 +6,7 @@ import { ToolRail } from './ToolRail'
 import { LayerPanel } from './LayerPanel'
 import { type MapProfileT } from './mapModel'
 import { type MapsViewState } from './mapViewModel'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 export function MapCanvas({
   is3D,
@@ -126,7 +127,8 @@ export function MapCanvas({
           </div>
         )}
         <MotionPresence>{peek && (
-          <div className="map-peek" role="dialog">
+          <div className="map-peek" role="dialog"
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setPeek(null))}>
             <button
               className="map-peek-close"
               onClick={() => setPeek(null)}

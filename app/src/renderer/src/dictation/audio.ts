@@ -107,7 +107,14 @@ export async function openSystemMicrophone(capture: NonNullable<Window['novalist
   const emit = (clips: string[]): void => {
     for (const clip of clips) onClip(Uint8Array.from(atob(clip), (char) => char.charCodeAt(0)))
   }
-  await capture.start()
+  try { await capture.start() }
+  catch (error) {
+    if (!(error instanceof DOMException && error.name === 'NotAllowedError')) {
+      try { await capture.stop() }
+      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Microphone startup and cleanup failed. Reopen the app before retrying.') }
+    }
+    throw error
+  }
   const stop = (): Promise<void> => {
     if (stopping) return stopping
     stopped = true

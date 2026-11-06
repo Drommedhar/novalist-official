@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 env:
   DOTNET_VERSION: 10.0.x
@@ -59,6 +59,9 @@ jobs:
           --settings tests/coverlet.runsettings
           --results-directory artifacts/coverage/backend
 
+      - name: Test Novalist.Sync.Client
+        run: dotnet test tests/Novalist.Sync.Client.Tests/Novalist.Sync.Client.Tests.csproj -c Debug --no-build
+
       # Measure only (never fails) so the badge can be published with the real number
       # — including when coverage has dropped below the threshold — before we fail the build.
       - name: Measure coverage
@@ -80,8 +83,8 @@ jobs:
           $overall = ($rates | Measure-Object -Minimum).Minimum   # lowest assembly rate
           "coverage=$overall" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Test coverage badge publisher
-        run: python -m unittest tools/test_coverage_badge.py
+      - name: Test repository tooling
+        run: python -m unittest discover -s tools -p "test_*.py"
 
       # Publish the measured number BEFORE enforcing, so a drop below 100% still
       # updates the badge (the build then fails on the next step).
@@ -198,11 +201,38 @@ jobs:
         working-directory: app
         run: npm run build:mobile
 
+      - name: Install isolated desktop credential service
+        run: sudo apt-get update && sudo apt-get install -y dbus-x11 gnome-keyring libsecret-tools libglib2.0-bin
+
       - name: E2E (Playwright against the real app)
         working-directory: app
         env:
           NOVALIST_E2E_ALLOW_DESKTOP: '1'
-        run: xvfb-run --auto-servernum npx playwright test
+        run: |
+          credential_session=$(mktemp -d)
+          trap 'rm -rf "$credential_session"' EXIT
+          # Keep Playwright pointed at the browsers installed before cache isolation.
+          export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-${XDG_CACHE_HOME:-$HOME/.cache}/ms-playwright}"
+          export XDG_CONFIG_HOME="$credential_session/config"
+          export XDG_DATA_HOME="$credential_session/data"
+          export XDG_CACHE_HOME="$credential_session/cache"
+          export XDG_RUNTIME_DIR="$credential_session/runtime"
+          export GNOME_KEYRING_CONTROL="$XDG_RUNTIME_DIR/keyring"
+          export XDG_CURRENT_DESKTOP=GNOME
+          mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME" "$GNOME_KEYRING_CONTROL"
+          chmod 700 "$XDG_RUNTIME_DIR" "$GNOME_KEYRING_CONTROL"
+          xvfb-run --auto-servernum dbus-run-session -- bash -euo pipefail <<'SESSION'
+            # A fresh random password protects only this disposable CI keyring.
+            openssl rand -hex 32 | gnome-keyring-daemon --foreground --unlock --components=secrets --control-directory "$GNOME_KEYRING_CONTROL" &
+            keyring_pid=$!
+            trap 'kill "$keyring_pid" 2>/dev/null || true; wait "$keyring_pid" 2>/dev/null || true' EXIT
+            gdbus wait --session --timeout 20 org.freedesktop.secrets
+            # Check the actual Playwright launch path: its Electron preload can
+            # override password storage even when standalone Electron is secure.
+            npx playwright test e2e/linux-credential-store.spec.ts
+            npx playwright test e2e/collaboration-account.spec.ts e2e/collaboration-peer.spec.ts e2e/m38-context-menu-groups.spec.ts
+            npx playwright test
+          SESSION
 
       - name: Upload failed E2E traces
         if: failure()

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapScale } from './mapModel'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 /**
  * What one world unit on this map is worth on the ground.
@@ -45,7 +46,8 @@ export function MapScaleDialog({
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog-card" role="dialog" aria-label={t('maps.scale')}>
+      <div className="dialog-card" role="dialog" aria-label={t('maps.scale')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onCancel)}>
         <div className="dialog-title">{t('maps.scale')}</div>
         <div className="settings-hint">{t('maps.scaleIntro')}</div>
 

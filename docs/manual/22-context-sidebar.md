@@ -6,9 +6,9 @@ The **Inspector** is the right-hand context sidebar of the Novalist window. For 
 - **Footnotes** — the footnotes and comments anchored in the open scene.
 - **Inbox** — the suggested edits waiting in the open scene, every open note in the book, and your to-dos.
 
-The **Notes** tab holds synopsis, freeform notes, goals and outcomes, relative timing, narrative mode and strand, cast and focus, and typed custom scene fields. These are also available in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the **Scene snapshots** button on the writing bar above the editor. (This pane was called the context sidebar in earlier versions.)
+The **Properties** tab holds synopsis, goals and outcomes, relative timing, narrative mode and strand, cast and focus, and typed custom scene fields. The floating [Scene Notes checklist](02-interface-overview.md#the-scene-notes-window) is available from **Notes** on the toolbar or `Ctrl+Shift+N`. The scene's **snapshot history** opens from **Scene snapshots** on the writing bar.
 
-The desktop sidebar is headed **Scene details**. It retains scene identity above the Context, Footnotes, Inbox and Notes tabs. **Expand all / Collapse all** opens or folds the context sections together; entity information, mention frequencies, scene analysis and overrides remain available.
+The desktop sidebar is headed **Scene details**. It retains scene identity above the Context, Footnotes, Inbox and Properties tabs. **Expand all / Collapse all** opens or folds the context sections together; entity information, mention frequencies, scene analysis and overrides remain available.
 
 ## Toggling the Inspector
 
@@ -151,11 +151,11 @@ You create footnotes and comments inside the editor (see [Editor](05-editor.md))
 
 A scene with no footnotes says so rather than showing an empty panel.
 
-## Notes tab
+## Properties tab
 
-The **Notes** tab contains the scene's synopsis, notes, goal, outcome, relative timing, narrative mode and strand, cast and focus, and custom scene properties. Text fields save when you click away. The synopsis also appears on Manuscript cards and in the outliner.
+The **Properties** tab contains the scene's synopsis, goal, outcome, relative timing, narrative mode and strand, cast and focus, and custom scene properties. Text fields save when you click away. The synopsis also appears on Manuscript cards and in the outliner.
 
-The **scene-notes dock** beneath the editor remains available through **View → Toggle scene notes** or `Ctrl+Shift+N`. While the inspector's Notes tab is visible, the dock is temporarily hidden so there is one editable copy of these fields. Switching back to another inspector tab restores the dock if you had it open.
+Scene notes now have one desktop editing surface: the floating checklist window. **Notes** on the project toolbar or `Ctrl+Shift+N` opens it from any workspace. Scene metadata stays in **Properties**, so the inspector and checklist can remain visible together.
 
 ## Scene snapshots (toolbar dialog)
 

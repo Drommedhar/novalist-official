@@ -1,10 +1,10 @@
-import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { type ContextMenuItem } from './ContextMenu'
 
 import { useStageStore } from '../stores/stageStore'
 
 import type { SceneMenuContext } from './binderSceneMenuContext'
+import { setSceneMetadata } from './sceneMetadataActions'
 export function sceneLabelItems(context: SceneMenuContext): ContextMenuItem[] {
   const { targets, scoped, state } = context
   const { t } = state
@@ -14,13 +14,7 @@ export function sceneLabelItems(context: SceneMenuContext): ContextMenuItem[] {
           ...labels.map((label) => ({
             label: scoped(`${t('labels.set')}: ${label.label}`),
             onClick: () => {
-              void (async () => {
-                for (const target of targets)
-                  await rpc.request('labels/setScene', [target.sceneId, label.key])
-                useProjectStore
-                  .getState()
-                  .applyState(await rpc.request<ProjectStateDto>('project/getState'))
-              })()
+              void setSceneMetadata(targets, 'label', label.key, target => rpc.request('labels/setScene', [target.sceneId, label.key]))
             }
           })),
           ...(labels.length > 0
@@ -28,13 +22,7 @@ export function sceneLabelItems(context: SceneMenuContext): ContextMenuItem[] {
                 {
                   label: scoped(t('labels.none')),
                   onClick: () => {
-                    void (async () => {
-                      for (const target of targets)
-                        await rpc.request('labels/setScene', [target.sceneId, null])
-                      useProjectStore
-                        .getState()
-                        .applyState(await rpc.request<ProjectStateDto>('project/getState'))
-                    })()
+                    void setSceneMetadata(targets, 'label', null, target => rpc.request('labels/setScene', [target.sceneId, null]))
                   }
                 }
               ]

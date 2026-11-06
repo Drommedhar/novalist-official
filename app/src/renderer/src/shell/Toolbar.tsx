@@ -1,25 +1,15 @@
 import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GitCompare, MoreHorizontal, PenLine, Plus, Search, Trash2, Wand2 } from 'lucide-react'
+import { GitCompare, ListChecks, MoreHorizontal, PenLine, Plus, Search, Trash2, Wand2 } from 'lucide-react'
 import { runCommand } from './commands'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useUiScaleStore } from '../stores/uiScaleStore'
 import { chromeForView } from './modes'
+import { CollaborationToolbar } from '../collaboration/CollaborationToolbar'
 
-/**
- * The open project's command bar.
- *
- * It used to carry the three panel toggles as well - binder, context sidebar
- * and scene notes - each of which was already an item in the View menu, and
- * the pane controls, and the scene's snapshot history. None of those act on
- * the project: two shape the window, which is the application's business and
- * so the menu bar's, and a snapshot is of the scene in front of the writer,
- * which makes it the writing view's.
- *
- * What is left all acts on the open project: which book and draft, what is in
- * them, and finding something in them.
- */
+/** The project command bar. Scene Notes has a persistent restore control here
+ * because its floating window remains useful across every workspace. */
 // placement-container: projectBar
 function useToolbarState() {
   const { t } = useTranslation()
@@ -160,6 +150,11 @@ export function Toolbar(): React.JSX.Element {
         </>
       )}
       <div className="toolbar-spacer" />
+      {isLoaded && <button className="toolbar-button toolbar-action" data-command="app.toggleSceneNotes"
+        title={t('shell.toggleSceneNotes')} onClick={() => runCommand('app.toggleSceneNotes')}>
+        <ListChecks size={16} strokeWidth={1.75} />{t('sceneChecklist.notes')}
+      </button>}
+      <CollaborationToolbar />
       {isLoaded && wide && chrome.projectBar && (
         <button
           className="toolbar-button"

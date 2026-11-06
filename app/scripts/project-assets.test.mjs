@@ -114,3 +114,92 @@ test('resolved assets use a bounded least-recently-used cache', async () => {
   f.requests.at(-1).resolve(uri)
   await evicted
 })
+
+test('preview reads enter the native host one at a time and queued duplicates share their result', async () => {
+  const f = fixture()
+  const first = f.resolveProjectAssetUrl('novalist-project://nl/a.png')
+  const second = f.resolveProjectAssetUrl('novalist-project://nl/b.png')
+  const duplicate = f.resolveProjectAssetUrl('novalist-project://nl/b.png')
+  const third = f.resolveProjectAssetUrl('novalist-project://nl/c.png')
+  assert.deepEqual(f.requests.map(request => request.path), ['a.png'])
+  f.requests[0].resolve('data:A')
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.path), ['a.png', 'b.png'])
+  f.requests[1].resolve('data:B')
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.path), ['a.png', 'b.png', 'c.png'])
+  f.requests[2].resolve('data:C')
+  assert.deepEqual(await Promise.all([first, second, duplicate, third]), ['data:A', 'data:B', 'data:B', 'data:C'])
+})
+
+test('a project change skips old queued paths before they reach the new project root', async () => {
+  const f = fixture()
+  const old = f.resolveProjectAssetUrl('novalist-project://nl/active.png')
+  const queued = f.resolveProjectAssetUrl('novalist-project://nl/old-only.png')
+  const oldCover = f.resolveProjectAssetUrl('novalist-project://nl/cover.png')
+  f.clearProjectImageCache()
+  const newCover = f.resolveProjectAssetUrl('novalist-project://nl/cover.png')
+  assert.deepEqual(f.requests.map(request => request.path), ['active.png'])
+  f.requests[0].resolve('data:OLD')
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.path), ['active.png', 'cover.png'])
+  f.requests[1].resolve('data:NEW')
+  assert.deepEqual(await Promise.all([old, queued, oldCover, newCover]), [null, null, null, 'data:NEW'])
+})
+
+test('a failed preview rejects its caller and releases the next queued preview', async () => {
+  const f = fixture()
+  const failed = assert.rejects(f.resolveProjectAssetUrl('novalist-project://nl/broken.png'), /unavailable/)
+  const next = f.resolveProjectAssetUrl('novalist-project://nl/good.png')
+  assert.equal(f.requests.length, 1)
+  f.requests[0].reject(new Error('unavailable'))
+  await failed
+  await turn()
+  assert.equal(f.requests.length, 2)
+  f.requests[1].resolve('data:GOOD')
+  assert.equal(await next, 'data:GOOD')
+})
+
+test('queued DOM previews skip detached elements and superseded sources before entering the host', async () => {
+  const f = fixture()
+  f.add('IMG', 'active.png')
+  const detached = f.add('IMG', 'old-codex.png')
+  detached.isConnected = false
+  const changed = f.add('IMG', 'old-source.png')
+  f.change(changed, 'current.png')
+  f.requests[0].resolve('data:ACTIVE')
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.path), ['active.png', 'current.png'])
+  f.requests[1].resolve('data:CURRENT')
+  await turn()
+  assert.equal(changed.src, 'data:CURRENT')
+  assert.equal(detached.events.length, 0)
+})
+
+test('a live coalesced DOM consumer keeps its queued preview after the original element detaches', async () => {
+  const f = fixture()
+  f.add('IMG', 'active.png')
+  const detached = f.add('IMG', 'shared.png')
+  const live = f.add('IMG', 'shared.png')
+  detached.isConnected = false
+  f.requests[0].resolve('data:ACTIVE')
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.path), ['active.png', 'shared.png'])
+  f.requests[1].resolve('data:SHARED')
+  await turn()
+  assert.equal(live.src, 'data:SHARED')
+  assert.equal(detached.src, 'novalist-project://nl/shared.png')
+})
+
+test('a direct asset consumer keeps a queued read even after every DOM consumer detaches', async () => {
+  const f = fixture()
+  f.add('IMG', 'active.png')
+  const detached = f.add('IMG', 'shared.png')
+  const direct = f.resolveProjectAssetUrl('novalist-project://nl/shared.png')
+  detached.isConnected = false
+  f.requests[0].resolve('data:ACTIVE')
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.path), ['active.png', 'shared.png'])
+  f.requests[1].resolve('data:SHARED')
+  assert.equal(await direct, 'data:SHARED')
+})

@@ -136,7 +136,8 @@ public sealed class FilesystemMigrator
         }
 
         await WriteJsonAsync(_fileService.CombinePath(draftRoot, ".nvindex.json"), index);
-        await WriteJsonAsync(_fileService.CombinePath(draftRoot, "acts.json"), draftData.Acts);
+        var actsPath = _fileService.CombinePath(draftRoot, "acts.json");
+        if (!await _fileService.ExistsAsync(actsPath)) await WriteJsonAsync(actsPath, draftData.Acts);
         return (chapters, scenes);
     }
 

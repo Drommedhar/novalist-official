@@ -1,9 +1,5 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { mkdtempSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
-import { enterWriting } from './harness'
+import { test, expect } from '@playwright/test'
+import { dismissTour, enterWriting, launchApp, seedBook } from './harness'
 
 /**
  * A context-menu group whose every row needs a selection is not offered when
@@ -16,75 +12,80 @@ import { enterWriting } from './harness'
  * keeps a menu the same shape from one open to the next - but a group with
  * nothing live in it is dropped.
  */
-test('context-menu groups require a selection and stay within the editor', async () => {
+test('context-menu groups require a selection and stay within the editor', async ({}, testInfo) => {
   test.setTimeout(120_000)
 
-  const workDir = mkdtempSync(join(tmpdir(), 'nl-ctxgroup-'))
-  const env: Record<string, string> = Object.fromEntries(
-    Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
-  ) as Record<string, string>
-  env.NOVALIST_NO_SPLASH = '1'
-  env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
+  const h = await launchApp('nl-ctxgroup-')
+  const { page } = h
+  let completed = false
+  try {
+    await h.app.context().tracing.start({ screenshots: true, snapshots: true, sources: true })
+    await seedBook(h, { 'Chapter One': ['A scene'] }, 'Menus')
+    await dismissTour(page)
+    await enterWriting(page)
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
-  const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator('.binder-scene-row')).toHaveCount(1, { timeout: 20_000 })
+    await page.locator('.binder-scene-row').first().click()
 
-  await evaluateWhenReady(page, async (parent) => {
-    const rpc = window.novalistRpc
-    let state = await rpc.request('project/create', [parent, 'Menus', 'Book One'])
-    state = await rpc.request('project/createChapter', ['Chapter One'])
-    const chapters = (state as { chapters: { guid: string }[] }).chapters
-    const guid = chapters[chapters.length - 1].guid
-    state = await rpc.request('project/createScene', [guid, 'A scene'])
-    window.novalistStores.project.getState().applyState(state as never)
-  }, workDir)
+    const frame = page.frameLocator('iframe[title="editor"]')
+    const editor = frame.locator('#editor')
+    await editor.click()
+    // Focus restores the previous scroll position asynchronously. Let it finish
+    // before typing and opening a menu whose position depends on that viewport.
+    await expect.poll(() => editor.evaluate(element =>
+      (element.ownerDocument.defaultView as unknown as {
+        NovalistEditorState: { isFocusing: boolean }
+      }).NovalistEditorState.isFocusing
+    )).toBe(false)
+    await editor.pressSequentially('Liam Calder walked to the window.')
+    const paragraph = editor.locator('p').filter({ hasText: 'Liam Calder walked to the window.' })
+    await expect(paragraph).toHaveCount(1)
 
-  // A created project opens on the Dashboard; the binder is Write's.
-  await enterWriting(page)
+    const groupNames = async (): Promise<string[]> =>
+      frame.locator('#context-menu .cm-parent > .cm-item > span').allTextContents()
 
-  await expect(page.locator('.binder-scene-row')).toHaveCount(1, { timeout: 20_000 })
-  await page.locator('.binder-scene-row').first().click()
+    // Caret only. Scene survives - splitting and inserting an image need no
+    // selection - and Codex, which is selection-only throughout, is absent.
+    await paragraph.click({ button: 'right', position: { x: 8, y: 8 } })
+    await expect(frame.locator('#context-menu.visible')).toBeVisible()
+    expect(await groupNames()).toEqual(['Scene'])
+    await page.keyboard.press('Escape')
 
-  const frame = page.frameLocator('iframe').first()
-  const editor = frame.locator('#editor')
-  await editor.click()
-  await editor.pressSequentially('Liam Calder walked to the window.')
+    // With prose selected the group comes back, and its rows are live.
+    await editor.press('ControlOrMeta+a')
+    await expect.poll(() => editor.evaluate(element =>
+      element.ownerDocument.getSelection()?.toString() ?? ''
+    )).toBe('Liam Calder walked to the window.')
+    await paragraph.click({ button: 'right', position: { x: 8, y: 8 } })
+    await expect(frame.locator('#context-menu.visible')).toBeVisible()
+    expect(await groupNames()).toEqual(['Scene', 'Codex'])
+    await expect(
+      frame.locator('#context-menu .cm-parent', { hasText: 'Codex' }).locator('.cm-item.disabled')
+    ).toHaveCount(0)
 
-  const groupNames = async (): Promise<string[]> =>
-    frame.locator('#context-menu .cm-parent > .cm-item > span').allTextContents()
-
-  // Caret only. Scene survives - splitting and inserting an image need no
-  // selection - and Codex, which is selection-only throughout, is absent.
-  await editor.click({ button: 'right' })
-  await expect(frame.locator('#context-menu.visible')).toBeVisible()
-  expect(await groupNames()).toEqual(['Scene'])
-  await page.keyboard.press('Escape')
-
-  // With prose selected the group comes back, and its rows are live.
-  await page.keyboard.press('Control+a')
-  await editor.click({ button: 'right' })
-  await expect(frame.locator('#context-menu.visible')).toBeVisible()
-  expect(await groupNames()).toEqual(['Scene', 'Codex'])
-  await expect(
-    frame.locator('#context-menu .cm-parent', { hasText: 'Codex' }).locator('.cm-item.disabled')
-  ).toHaveCount(0)
-
-  // Flyouts near the bottom must remain inside the iframe, where they can be clicked.
-  await page.keyboard.press('Escape')
-  await editor.evaluate((element) => element.dispatchEvent(new MouseEvent('contextmenu', {
-    bubbles: true, clientX: window.innerWidth - 8, clientY: window.innerHeight - 8
-  })))
-  const codex = frame.locator('#context-menu .cm-parent', { hasText: 'Codex' })
-  await codex.hover()
-  const bounds = await codex.locator('.cm-submenu').evaluate((element) => {
-    const rect = element.getBoundingClientRect()
-    return { top: rect.top, bottom: rect.bottom, height: window.innerHeight }
-  })
-  expect(bounds.top).toBeGreaterThanOrEqual(0)
-  expect(bounds.bottom).toBeLessThanOrEqual(bounds.height)
-  await codex.locator('[data-action="appendToEntitySection"]').click()
-  await expect(page.locator('.capture-excerpt')).toContainText('Liam Calder walked to the window.')
-
-  await app.close()
+    // Flyouts near the bottom must remain inside the iframe, where they can be clicked.
+    await page.keyboard.press('Escape')
+    await editor.evaluate((element) => element.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true, clientX: window.innerWidth - 8, clientY: window.innerHeight - 8
+    })))
+    const codex = frame.locator('#context-menu .cm-parent', { hasText: 'Codex' })
+    await codex.hover()
+    const bounds = await codex.locator('.cm-submenu').evaluate((element) => {
+      const rect = element.getBoundingClientRect()
+      return { top: rect.top, bottom: rect.bottom, height: window.innerHeight }
+    })
+    expect(bounds.top).toBeGreaterThanOrEqual(0)
+    expect(bounds.bottom).toBeLessThanOrEqual(bounds.height)
+    await codex.locator('[data-action="appendToEntitySection"]').click()
+    await expect(page.locator('.capture-excerpt')).toContainText('Liam Calder walked to the window.')
+    completed = true
+  } finally {
+    try {
+      const path = completed ? undefined : testInfo.outputPath('electron-trace.zip')
+      await h.app.context().tracing.stop({ path })
+      if (path) await testInfo.attach('electron-trace', { path, contentType: 'application/zip' })
+    } finally {
+      await h.close()
+    }
+  }
 })

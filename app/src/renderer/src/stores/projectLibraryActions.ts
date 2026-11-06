@@ -1,6 +1,6 @@
 import { rpc } from '../rpc/client'
 import { useSettingsStore } from './settingsStore'
-import { flushPendingWrites } from './pendingWrites'
+import { capturePendingWrites, flushPendingWrites } from './pendingWrites'
 import { type ProjectStateDto, type RecentProjectDto, type ProjectSlice } from './projectTypes'
 import { useProjectStore } from './projectStore'
 import { runSceneContext } from './projectSceneActions'
@@ -80,6 +80,9 @@ export const createProjectLibraryActions: ProjectSlice<'loadRecents' | 'openProj
 
   closeProject: () => runSceneContext(async () => {
     if (get().closingProject) return
+    // Capture live prose before making the workspace inert. Keep its editors
+    // attached while their registered and shared save queues acknowledge it.
+    capturePendingWrites()
     set({ closingProject: true })
     recentRefreshVersion++
     recentRefreshRequested = false

@@ -12,10 +12,12 @@ import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { ExportView } from '../views/export/ExportView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
+import { MobileLibraryButton } from './MobileLibraryButton'
 import { TabletShell } from './TabletShell'
 import { useShellStore, type MobileTab, type MainView, type MobileLayout } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
+import { useAndroidBack } from '../mobile/useAndroidBack'
 import './mobile.css'
 
 // Plan menu items, in the order shown in the native popover. Index maps back from
@@ -83,22 +85,22 @@ const TABLET_DESTINATIONS: MainView[] = [
  */
 function useMobileLayout(): MobileLayout {
   const { t, i18n } = useTranslation()
-  const layout = useShellStore((s) => s.mobileLayout)
+  const requestedLayout = useShellStore((s) => s.mobileLayout)
+  const closingProject = useProjectStore((s) => s.closingProject)
+  const activeLayout = useRef(requestedLayout)
+  // Keep the saving editor attached across native rotation. A failed close
+  // resumes with the latest requested layout once the workspace is editable.
+  if (!closingProject) activeLayout.current = requestedLayout
+  const layout = activeLayout.current
   // The native side owns the size class, so it also owns which layout we render.
   // requestLayout covers the case where the first size-class pass ran before this
   // bundle finished loading and its announcement was therefore lost.
   useEffect(() => {
-    const w = window
-    w.__novalistLayout = (mode: string) =>
-      useShellStore.getState().setMobileLayout(mode === 'tablet' ? 'tablet' : 'phone')
     // Electron has no size class to announce, so the e2e flag stands in for one.
     // Pushed through the same callback the native side calls, so a test drives
     // the real path into TabletShell rather than an approximation of it.
-    if (window.novalist.isTablet) w.__novalistLayout('tablet')
+    if (window.novalist.isTablet) useShellStore.getState().setMobileLayout('tablet')
     window.novalist.requestLayout?.()
-    return () => {
-      delete w.__novalistLayout
-    }
   }, [])
 
   // Expose the layout to CSS. On documentElement rather than a class on the shell
@@ -137,7 +139,8 @@ function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispat
   // Bridge for the native tab bar / sidebar (RendererHostPage -> EvaluateJavaScript).
   useEffect(() => {
     const w = window
-    w.__novalistTab = (key: string) => {
+    const navigate = (key: string): void => {
+      if (useProjectStore.getState().closingProject) return
       // The iPad sidebar sends MainView keys straight through - it has one entry
       // per destination, so there is no tab-to-view mapping and no Plan drawer.
       if (layout === 'tablet') {
@@ -162,6 +165,11 @@ function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispat
       }
       setPlanningDrawerOpen(false)
       setTab(key as MobileTab)
+    }
+    w.__novalistTab = (key: string) => {
+      if (useProjectStore.getState().closingProject) return
+      if (window.novalist.platform === 'android') useShellStore.getState().guardLeave(() => navigate(key))
+      else navigate(key)
     }
     return () => {
       delete w.__novalistTab
@@ -239,10 +247,13 @@ export function MobileShell(): React.JSX.Element {
   // Codex tab: switch between editing (Codex) and reading (Wiki).
   const [codexMode, setCodexMode] = useState<'codex' | 'wiki'>('codex')
 
+  useAndroidBack(inspectorOpen, setInspectorOpen, planningDrawerOpen, setPlanningDrawerOpen)
+
   useNativeTabs(layout, setPlanningDrawerOpen)
   useNativeTabSelection(layout, planningView, inspectorOpen)
 
   const selectPlanning = (target: PlanningTarget): void => {
+    if (useProjectStore.getState().closingProject) return
     setPlanningDrawerOpen(false)
     if (target === 'findReplace') {
       setFindReplaceOpen(true)
@@ -262,7 +273,9 @@ export function MobileShell(): React.JSX.Element {
       const target = PLANNING_TARGETS[index]
       if (target) selectPlanning(target)
     }
-    w.__novalistPlanDismiss = () => setPlanningDrawerOpen(false)
+    w.__novalistPlanDismiss = () => {
+      if (!useProjectStore.getState().closingProject) setPlanningDrawerOpen(false)
+    }
     return () => {
       delete w.__novalistPlanSelect
       delete w.__novalistPlanDismiss
@@ -340,6 +353,9 @@ export function MobileShell(): React.JSX.Element {
 
   return (
     <div className="mobile-shell">
+      <div className="mobile-topbar">
+        <MobileLibraryButton />
+      </div>
       {tab === 'export' && (
         <div className="mobile-editor-bar">
           <button type="button" className="mobile-back" onClick={() => setTab('manuscript')}>

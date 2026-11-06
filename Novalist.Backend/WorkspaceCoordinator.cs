@@ -27,7 +27,10 @@ internal sealed class WorkspaceCoordinator(Workspace workspace, SemaphoreSlim ga
         or "drafts/transfer" or "drafts/duplicate" or "sceneBulk/archive" or "sceneBulk/delete"
         or "sceneBulk/moveToChapter" or "project/deleteScene" or "project/deleteChapter"
         or "project/moveScenes" or "sceneSplit/split" or "sceneSplit/merge"
-        or "snapshots/restore" or "search/replaceAll";
+        or "snapshots/restore" or "search/replaceAll"
+        or "collaboration/create" or "collaboration/join" or "collaboration/end" or "collaboration/resume" or "collaboration/copy"
+        or "collaboration/deleteSharedProject" or "collaboration/removeMember"
+        or "collaboration/peer/host" or "collaboration/peer/join" or "collaboration/steam/host" or "collaboration/steam/join";
 
     internal void Validate(WorkspaceRequestIdentity? identity, string? method)
     {

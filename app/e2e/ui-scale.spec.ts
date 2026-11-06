@@ -22,22 +22,31 @@ test('macOS window buttons keep their space at every interface size', async () =
         const title = document.querySelector('.toolbar-book')!.getBoundingClientRect()
         const body = document.querySelector('.shell-body')!.getBoundingClientRect()
         const rail = document.querySelector('.mode-rail')!.getBoundingClientRect()
+        const icon = document.querySelector('.mode-rail-workspaces > button svg')!.getBoundingClientRect()
         // Native buttons use window points, while DOM bounds use zoomed CSS
         // pixels. devicePixelRatio also includes Retina scaling and cannot be
         // used to compare these two coordinate systems.
         return {
           titleLeft: title.left * zoom,
           toolbarHeight: toolbar.height * zoom,
+          toolbarBottom: toolbar.bottom * zoom,
           bodyTop: body.top * zoom,
-          railWidth: rail.width * zoom
+          railTop: rail.top * zoom,
+          railBottom: rail.bottom * zoom,
+          railWidth: rail.width * zoom,
+          bodyWidth: body.width * zoom,
+          iconWidth: icon.width * zoom
         }
       }, factor)
       expect(geometry.titleLeft, `title clearance at ${percent}%`).toBeCloseTo(78, 0)
       expect(geometry.toolbarHeight, `toolbar height at ${percent}%`)
         .toBeCloseTo(Math.max(38, 38 * factor), 0)
-      expect(geometry.bodyTop).toBeCloseTo(geometry.toolbarHeight, 0)
-      // The rest of the interface must still follow the requested scale.
-      expect(geometry.railWidth).toBeCloseTo(84 * factor, 0)
+      // Desktop navigation is a full-width row between the titlebar and body.
+      expect(geometry.railTop, `navigation top at ${percent}%`).toBeCloseTo(geometry.toolbarBottom, 0)
+      expect(geometry.bodyTop, `body below navigation at ${percent}%`).toBeCloseTo(geometry.railBottom, 0)
+      expect(geometry.railWidth).toBeCloseTo(geometry.bodyWidth, 0)
+      // Native-button clearance stays fixed; ordinary controls still scale.
+      expect(geometry.iconWidth, `navigation icon at ${percent}%`).toBeCloseTo(19 * factor, 0)
     }
 
     await openAppearance()

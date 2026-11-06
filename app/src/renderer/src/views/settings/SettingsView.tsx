@@ -1,6 +1,7 @@
 import { ArrowLeft, Search, X } from 'lucide-react'
 import { type SettingsSection } from '../../stores/settingsStore'
 import './settings.css'
+import './settings-mobile.css'
 import { SettingsFields } from './SettingsFields'
 import { SettingsPhone } from './SettingsLayouts'
 import { type SettingsLayoutProps } from './settingsLayoutTypes'

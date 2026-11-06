@@ -3,19 +3,15 @@ using Xunit;
 namespace Novalist.Backend.Tests;
 
 /// <summary>
-/// Serializes every test class that reads or writes
-/// <see cref="Novalist.Core.Services.SceneAnalysisLexicon"/>'s process-wide
-/// state - its language list, its parsed-lexicon cache, and the registered user
-/// directory.
-///
-/// The Core test project has had this since the same race was found there. This
-/// project's classes touch the same statics through the RPCs and were never
-/// grouped, so a class that drops a user lexicon into its own temp directory
-/// could be observed mid-flight by a class asserting over the shipped set. It
-/// failed roughly one run in four, always under the coverage collector, which
-/// runs the suite slowly enough to widen the window.
+/// Isolates assertions about the process-wide lexicon directory, language list,
+/// and cache. Every Workspace constructor registers its own analysis directory,
+/// including constructors in test classes that do not otherwise use lexicons.
+/// Sharing a collection only serializes its members; disabling parallelization
+/// also prevents an unrelated Workspace from replacing the directory between a
+/// rescan's registration and its language-pack report. Other collections can
+/// still run in parallel with each other.
 /// </summary>
-[CollectionDefinition(Name)]
+[CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class LexiconStaticsCollection
 {
     public const string Name = "LexiconStatics";

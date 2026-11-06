@@ -6,6 +6,9 @@ import { EyeOff } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../../collaboration/metadataCommands'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
 import { useMotionPresent } from '../../shell/MotionPresence'
 import { useContentTransition } from '../../shell/useContentTransition'
 import './editor.css'
@@ -158,6 +161,12 @@ export function PeekCard({
   const ignoreHere = async (): Promise<void> => {
     const sceneId = scope.sceneId
     if (!sceneId) return
+    const record = await rpc.request<{ sharedFields?: SharedEntityFields }>('entities/get', [data.typeKey, data.id])
+    const binding = metadataBinding(record, 'match.ignoredSceneIds')
+    if (binding) {
+      if (await writeSharedMetadata<string[]>(binding, previous => [...new Set([...(previous ?? []), sceneId])])) onClose()
+      return
+    }
     const current = await rpc.request<{
       caseSensitive: boolean
       matchPlurals: boolean

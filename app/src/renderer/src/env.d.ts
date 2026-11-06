@@ -22,12 +22,14 @@ interface Window {
   HybridWebView?: { SendRawMessage?: (message: string) => void }
   __novalistRecv?: (base64: string) => string
   __novalistHostResult?: (base64: string) => string
+  __novalistCollaborationRequest?: (id: number, parameters: unknown) => string
   __novalistLifecycleSave?: (requestId: number) => void
   __novalistBridgeFailed?: () => void
   __novalistLayout?: (mode: string) => void
   __novalistTab?: (key: string) => void
   __novalistPlanSelect?: (index: number) => void
   __novalistPlanDismiss?: () => void
+  __novalistBack?: () => boolean
   __novalistSidebarCollapsed?: (collapsed: boolean) => void
   novalistStores: {
     project: typeof import('./stores/projectStore').useProjectStore
@@ -111,8 +113,8 @@ interface Window {
       scale: number
     ): Promise<boolean>
     saveFile(defaultName: string): Promise<string | null>
-    /** iOS: deliver a staged export through the share sheet. False means cancelled. */
-    shareExport?(path: string): Promise<boolean>
+    /** Share a staged export. Android reports handoff; only iOS reports completion/cancellation. */
+    shareExport?(path: string): Promise<boolean | 'handed-off'>
     /** iOS: release this export's temporary file and any companion assets. */
     releaseExport?(path: string): Promise<void>
     applySpellCheck(enabled: boolean, languages: string[], words: string[]): Promise<string[]>
@@ -121,9 +123,9 @@ interface Window {
     onSpellCheckWordAdded(handler: (word: string) => void): void
     /** The misspelling under the pointer, as the context menu opens. */
     /** A novalist:// link waiting from launch, or null. */
-    takeDeepLink(): Promise<{ project: string; chapter?: string; scene?: string } | null>
+    takeDeepLink(): Promise<import('../../main/deeplink').DeepLink | null>
     /** Links arriving while the app is already open. */
-    onDeepLink(handler: (link: { project: string; chapter?: string; scene?: string }) => void): void
+    onDeepLink(handler: (link: import('../../main/deeplink').DeepLink) => void): void
     onSpellingContext(handler: (word: string, suggestions: string[]) => void): void
     /** Applies a correction through Chromium, which owns the misspelled range. */
     replaceMisspelling(replacement: string): void
@@ -155,6 +157,18 @@ interface Window {
       sceneId: string | null
     }): Promise<void>
     registerExtensionRoots(roots: Record<string, string>): Promise<void>
+    publishSceneNotesContext?(context: import('../../shared/sceneNotesProtocol').SceneNotesContext | null): void
+    sceneNotesWindowState?(): Promise<import('../../shared/sceneNotesProtocol').SceneNotesWindowState>
+    toggleSceneNotes?(): Promise<void>
+    hideSceneNotes?(): Promise<void>
+    requestSceneNotesDock?(): Promise<void>
+    dockSceneNotes?(): Promise<void>
+    floatSceneNotes?(): Promise<void>
+    followSceneNotes?(follow: boolean): Promise<void>
+    onSceneNotesDockRequest?(handler: () => void): () => void
+    onSceneNotesRelease?(handler: () => Promise<void>): () => void
+    pinSceneNotes?(pinned: boolean): Promise<void>
+    onSceneNotesState?(handler: (state: import('../../shared/sceneNotesProtocol').SceneNotesWindowState) => void): () => void
     checkAppUpdate(): Promise<AppUpdate | null>
     hasDetachedPanes(): Promise<boolean>
     downloadAppUpdate(info: AppUpdate): Promise<AppUpdateDownloadResult>

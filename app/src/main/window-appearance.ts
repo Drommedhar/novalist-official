@@ -39,8 +39,9 @@ export function clampWindowToDisplay(win: BrowserWindow): void {
   if (win.isDestroyed() || win.isMaximized() || win.isFullScreen() || win.isMinimized()) return
   const bounds = win.getBounds()
   const area = screen.getDisplayMatching(bounds).workArea
-  const width = Math.min(Math.max(bounds.width, Math.min(760, area.width)), area.width)
-  const height = Math.min(Math.max(bounds.height, Math.min(520, area.height)), area.height)
+  const [minWidth, minHeight] = win.getMinimumSize()
+  const width = Math.min(Math.max(bounds.width, Math.min(minWidth, area.width)), area.width)
+  const height = Math.min(Math.max(bounds.height, Math.min(minHeight, area.height)), area.height)
   const x = Math.max(area.x, Math.min(bounds.x, area.x + area.width - width))
   const y = Math.max(area.y, Math.min(bounds.y, area.y + area.height - height))
   if (x !== bounds.x || y !== bounds.y || width !== bounds.width || height !== bounds.height) {
@@ -48,7 +49,10 @@ export function clampWindowToDisplay(win: BrowserWindow): void {
   }
 }
 
-export function createAppWindow(geometry: Pick<BrowserWindowConstructorOptions, 'width' | 'height' | 'minWidth' | 'minHeight'>): BrowserWindow {
+export function createAppWindow(
+  geometry: Pick<BrowserWindowConstructorOptions, 'width' | 'height' | 'minWidth' | 'minHeight'>,
+  chrome: Pick<BrowserWindowConstructorOptions, 'parent' | 'frame' | 'titleBarStyle' | 'minimizable' | 'maximizable' | 'fullscreenable' | 'skipTaskbar'> = {}
+): BrowserWindow {
   const iconPath = resolveIconPath()
   return new BrowserWindow({
     ...geometry,
@@ -56,6 +60,7 @@ export function createAppWindow(geometry: Pick<BrowserWindowConstructorOptions, 
     title: 'Novalist',
     ...(iconPath ? { icon: iconPath } : {}),
     ...materialWindowOptions(material),
+    ...chrome,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

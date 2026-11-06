@@ -15,6 +15,7 @@ import { useWorkspaceWindow } from './useWorkspaceWindow'
 import { SceneConflictDialog } from './SceneConflictDialog'
 import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
+import { useSceneNotesContext } from './useSceneNotesContext'
 
 /** What the window was torn off to show. */
 export interface DetachedRequest {
@@ -40,6 +41,7 @@ export interface DetachedRequest {
  * something else - and can be split, which is how a second scene gets in here.
  */
 export function DetachedPane({ request }: { request: DetachedRequest }): React.JSX.Element {
+  useSceneNotesContext()
   const { t } = useTranslation()
   const closeStage = useWorkspaceWindow()
   useDetachedCommands()

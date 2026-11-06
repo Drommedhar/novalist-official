@@ -1,36 +1,16 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
-import { useProjectStore, reportManuscriptEditing, type ChapterDto, type ProjectStateDto } from './projectStore'
+import { useProjectStore, reportManuscriptEditing, type ChapterDto } from './projectStore'
 import { useFilterStore } from './filterStore'
+import { capturePendingWrites, flushPendingWrites } from './pendingWrites'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
 import i18n from '../i18n'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
 import type { SceneDiskChange } from './externalSceneRefresh'
-
-export interface ManuscriptSceneDto {
-  sceneId: string
-  title: string
-  html: string
-  /** Fingerprint of the exact prose this editor loaded. */
-  hash: string
-  wordCount: number
-  synopsis: string | null
-  pov: string | null
-  /** What the viewpoint wants here. Authored, never inferred. */
-  goal: string | null
-  /** What they are left with. Authored, never inferred. */
-  outcome: string | null
-  /** True when the scene is out of the book but still in the plan. */
-  inactive: boolean
-}
-
-export interface ManuscriptSectionDto {
-  chapterGuid: string
-  chapterTitle: string
-  status: string
-  act: string
-  scenes: ManuscriptSceneDto[]
-}
+import { metadataBinding } from '../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../collaboration/metadataCommands'
+import type { ManuscriptSectionDto } from './manuscriptTypes'
+export type { ManuscriptSceneDto, ManuscriptSectionDto } from './manuscriptTypes'
 
 export type ManuscriptMode = 'manuscript' | 'corkboard' | 'outliner' | 'board'
 
@@ -82,6 +62,7 @@ export function applyExternalManuscriptScene(change: SceneDiskChange, previousHa
 const sceneWriteTails = new Map<string, Promise<void>>()
 let loadRevision = 0
 let pendingLoads = 0
+let proseRevision = 0
 
 function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> {
   if (save.inFlight) return save.inFlight
@@ -172,6 +153,7 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
 }
 
 interface ManuscriptState {
+  sharedEdits: Record<string, { chapterGuid: string; sceneId: string; pending: boolean; error: boolean }>
   mode: ManuscriptMode
   /** When set, only these scenes are composed - a chosen run read as prose. */
   composed: string[] | null
@@ -207,7 +189,6 @@ interface ManuscriptState {
   /** Adopts a conflict resolution and retires the manuscript payload it chose
    *  between, so it cannot be submitted again after the merge. */
   acceptResolvedScene(sceneId: string, html: string, wordCount: number, hash: string): void
-  cycleStatus(chapterGuid: string): Promise<void>
   setSynopsis(chapterGuid: string, sceneId: string, synopsis: string): Promise<void>
   setPov(chapterGuid: string, sceneId: string, pov: string): Promise<void>
   setGoalOutcome(
@@ -219,6 +200,7 @@ interface ManuscriptState {
 }
 
 export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
+  sharedEdits: {},
   mode: 'manuscript',
   freeform: false,
   composed: null,
@@ -242,33 +224,50 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
    */
   applyList: async (filterListId) => {
     if (!filterListId) {
-      set({ filterListId: '', composed: [] })
+      set({ filterListId: '', composed: null })
       await get().load()
       return
     }
-    const matches = await rpc
-      .request<{ sceneId: string }[]>('smartLists/evaluate', [filterListId])
-      .catch(() => [])
+    const matches = await rpc.request<{ sceneId: string }[]>('smartLists/evaluate', [filterListId])
     set({ filterListId, composed: matches.map((m) => m.sceneId) })
     await get().load()
   },
 
   load: async () => {
     const revision = ++loadRevision
-    // Read every filter from the shared state, including chapter status, so
-    // loading before the view mounts cannot reuse a stale local restriction.
-    const shared = useFilterStore.getState().filter
     pendingLoads++
     try {
-      const sections = await rpc.request<ManuscriptSectionDto[]>('manuscript/get', [
-        shared.status || 'All',
-        get().composed,
-        shared.character || null,
-        shared.location || null,
-        shared.plotline || null,
-        shared.stage || null
-      ])
-      if (revision === loadRevision) set({ sections, loaded: true })
+      while (revision === loadRevision) {
+        // The iframe and the store each debounce prose. Drain both before a
+        // filter can remove their scenes or replace their text with disk data.
+        capturePendingWrites()
+        // Shared prose is owned by mounted/retained CRDT sessions, outside
+        // the local save queue. Drain them before testing for pending edits.
+        if (Object.keys(get().sharedEdits).length) await flushPendingWrites()
+        await get().flushPendingSave()
+        if (revision !== loadRevision) return
+        capturePendingWrites()
+        if (hasPendingManuscriptWrites()) continue
+
+        const shared = useFilterStore.getState().filter
+        const { composed, filterListId } = get()
+        const readProseRevision = proseRevision
+        // The RPC's empty chosen set means "whole book" for older callers.
+        // An active saved query with zero matches must instead stay empty.
+        const sections = filterListId && composed?.length === 0 ? [] :
+          await rpc.request<ManuscriptSectionDto[]>('manuscript/get', [
+            shared.status || 'All', composed,
+            shared.character || null, shared.location || null,
+            shared.plotline || null, shared.stage || null
+          ])
+        if (revision !== loadRevision) return
+        // Typing can continue during the read. Save those newer words and
+        // fetch again instead of publishing a snapshot that predates them.
+        capturePendingWrites()
+        if (hasPendingManuscriptWrites() || readProseRevision !== proseRevision) continue
+        set({ sections, loaded: true })
+        return
+      }
     } finally {
       pendingLoads--
     }
@@ -304,13 +303,14 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   // Reading a chosen run as continuous prose - one POV's thread, the scenes a
   // saved list found - is the only way to hear whether it holds together.
   compose: async (composed) => {
-    set({ composed, mode: 'manuscript' })
+    set({ composed, mode: 'manuscript', filterListId: '' })
     await get().load()
   },
 
   onSceneContentChanged: (sceneId, html, plainText, wordCount) => {
     const section = get().sections.find((s) => s.scenes.some((sc) => sc.sceneId === sceneId))
-    if (!section) return
+    if (!section || section.scenes.find(scene => scene.sceneId === sceneId)?.shared) return
+    proseRevision++
     set({
       sections: get().sections.map((s) => ({
         ...s,
@@ -372,19 +372,6 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
     reportManuscriptClaims()
   },
 
-  cycleStatus: async (chapterGuid) => {
-    const cycle = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
-    const section = get().sections.find((s) => s.chapterGuid === chapterGuid)
-    if (!section) return
-    const next = cycle[(cycle.indexOf(section.status) + 1) % cycle.length]
-    const state = await rpc.request<ProjectStateDto>('project/setChapterStatus', [
-      chapterGuid,
-      next
-    ])
-    useProjectStore.getState().applyState(state)
-    await get().load()
-  },
-
   setSynopsis: async (chapterGuid, sceneId, synopsis) => {
     await rpc.request('scenes/setSynopsis', [chapterGuid, sceneId, synopsis])
     set({
@@ -402,7 +389,11 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   },
 
   setPov: async (chapterGuid, sceneId, pov) => {
-    await rpc.request('scenes/setPov', [chapterGuid, sceneId, pov])
+    const scene = useProjectStore.getState().chapters.find(chapter => chapter.guid === chapterGuid)?.scenes.find(scene => scene.id === sceneId)
+    const binding = metadataBinding(scene, 'analysisOverrides.pov')
+    if (binding) {
+      if (!await writeSharedMetadata(binding, pov || null)) return
+    } else await rpc.request('scenes/setPov', [chapterGuid, sceneId, pov])
     set({
       sections: get().sections.map((s) =>
         s.chapterGuid === chapterGuid
@@ -434,15 +425,16 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   }
 }))
 
-function reportManuscriptClaims(): void {
-  reportManuscriptEditing([...saveTimers.values()].map(({ chapterGuid, sceneId }) => ({ chapterGuid, sceneId, dirty: true })))
+export function reportManuscriptClaims(): void {
+  reportManuscriptEditing([...saveTimers.values(), ...Object.values(useManuscriptStore.getState().sharedEdits)]
+    .map(({ chapterGuid, sceneId }) => ({ chapterGuid, sceneId, dirty: true })))
 }
 
 export function pendingManuscriptRecovery(): { chapterGuid: string; sceneId: string; html: string; plainText: string; hash: string }[] {
   return [...saveTimers.values()].map((save) => ({ chapterGuid: save.chapterGuid, sceneId: save.sceneId, html: save.html, plainText: save.plainText, hash: save.expectedHash }))
 }
 
-export function hasPendingManuscriptWrites(): boolean { return saveTimers.size > 0 }
+export function hasPendingManuscriptWrites(): boolean { return saveTimers.size > 0 || Object.keys(useManuscriptStore.getState().sharedEdits).length > 0 }
 
 /** Called only after the shared workspace has acknowledged every pending save. */
 export function resetManuscriptWorkspace(): void {

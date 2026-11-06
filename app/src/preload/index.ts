@@ -1,5 +1,8 @@
 import type { WorkspaceEvent, WorkspaceSnapshot, CloseStage } from "../shared/workspaceProtocol";
+import type { SceneNotesContext, SceneNotesWindowState } from '../shared/sceneNotesProtocol'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
+import type { DeepLink } from '../main/deeplink'
+import { selfUpdateDisabled } from '../shared/selfUpdatePolicy'
 
 const material =
   process.argv.find((a) => a.startsWith('--nl-material='))?.split('=')[1] ?? 'opaque'
@@ -51,7 +54,7 @@ contextBridge.exposeInMainWorld('novalist', {
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.
   autoUpdate: !process.env.NOVALIST_NO_SPLASH && !isMas,
-  selfUpdateDisabled: isMas || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1',
+  selfUpdateDisabled: isMas || selfUpdateDisabled,
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
   },
@@ -100,12 +103,12 @@ contextBridge.exposeInMainWorld('novalist', {
    * Pulled rather than pushed for the cold start: a link is usually what
    * launches the app, so it arrives long before the renderer is listening.
    */
-  takeDeepLink(): Promise<{ project: string; chapter?: string; scene?: string } | null> {
+  takeDeepLink(): Promise<DeepLink | null> {
     return ipcRenderer.invoke('novalist:take-deep-link')
   },
 
   /** Links that arrive while the app is already open. */
-  onDeepLink(handler: (link: { project: string; chapter?: string; scene?: string }) => void): void {
+  onDeepLink(handler: (link: DeepLink) => void): void {
     ipcRenderer.removeAllListeners('novalist:deep-link')
     ipcRenderer.on('novalist:deep-link', (_event, link) => handler(link))
   },
@@ -188,6 +191,35 @@ contextBridge.exposeInMainWorld('novalist', {
     // Awaitable rather than fired and forgotten: a plugin module URL resolves
     // against these, and an import that overtook the message got a 404.
     return ipcRenderer.invoke('novalist:register-ext-roots', roots)
+  },
+  publishSceneNotesContext(context: SceneNotesContext | null): void {
+    ipcRenderer.send('novalist:notes-context', context)
+  },
+  sceneNotesWindowState(): Promise<SceneNotesWindowState> { return ipcRenderer.invoke('novalist:notes-state') },
+  toggleSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-toggle') },
+  hideSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-hide') },
+  requestSceneNotesDock(): Promise<void> { return ipcRenderer.invoke('novalist:notes-request-dock') },
+  dockSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-dock') },
+  floatSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-float') },
+  followSceneNotes(follow: boolean): Promise<void> { return ipcRenderer.invoke('novalist:notes-follow', follow) },
+  onSceneNotesDockRequest(handler: () => void): () => void {
+    const listener = (): void => handler()
+    ipcRenderer.on('novalist:notes-dock-request', listener)
+    return () => { ipcRenderer.removeListener('novalist:notes-dock-request', listener) }
+  },
+  onSceneNotesRelease(handler: () => Promise<void>): () => void {
+    const listener = async (_event: Electron.IpcRendererEvent, token: number): Promise<void> => {
+      try { await handler(); ipcRenderer.send('novalist:notes-released', token, true) }
+      catch { ipcRenderer.send('novalist:notes-released', token, false) }
+    }
+    ipcRenderer.on('novalist:notes-release', listener)
+    return () => { ipcRenderer.removeListener('novalist:notes-release', listener) }
+  },
+  pinSceneNotes(pinned: boolean): Promise<void> { return ipcRenderer.invoke('novalist:notes-pin', pinned) },
+  onSceneNotesState(handler: (state: SceneNotesWindowState) => void): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, state: SceneNotesWindowState): void => handler(state)
+    ipcRenderer.on('novalist:notes-state', listener)
+    return () => { ipcRenderer.removeListener('novalist:notes-state', listener) }
   },
   // App self-update. Download and launch are separate so the renderer can
   // finish its final saves and close backup before any installer/helper runs.

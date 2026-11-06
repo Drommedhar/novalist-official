@@ -44,7 +44,7 @@ function BookDashboard(): React.JSX.Element {
 
   if (!data) return <div className="main-placeholder">{t('shell.viewLoading')}</div>
 
-  const {maxBar, statusTotal, metrics, resume} = deriveDashboard(data, chapters, openChapterGuid, openSceneId)
+  const {maxBar, metrics, resume} = deriveDashboard(data, chapters, openChapterGuid, openSceneId)
 
   return (
     <div className="dashboard">
@@ -135,7 +135,7 @@ function BookDashboard(): React.JSX.Element {
         </div>
       </div>
 
-          <DashboardWordStatistics data={data} t={t} statusTotal={statusTotal} />
+          <DashboardWordStatistics data={data} t={t} />
 
       {/* What the book is, before what is left to write of it. */}
       <PremiseCard />
@@ -177,7 +177,7 @@ function BookDashboard(): React.JSX.Element {
                 which === 'project' ? parsed : data.projectGoalTarget,
                 data.deadline
               ])
-              .then(() => rpc.request<DashboardDto>('dashboard/get', [range]).then(setData))
+              .then(() => rpc.request<DashboardDto>('dashboard/get', [range, !window.novalist.isMobile]).then(setData))
           }}
         />
       )}</MotionPresence>

@@ -9,7 +9,7 @@ You spend most of your time looking at one scene in the editor and the full tree
 The **Chapters** tab of the binder shows the active draft's structure as a tree:
 
 - **Act headers** — when chapters are assigned to acts, a header row with the act name appears above the first chapter of each act.
-- **Chapter rows** — a collapse/expand chevron, a colored **status dot**, and the title. Click the dot to cycle the chapter's status.
+- **Chapter rows** — a collapse/expand chevron and the title. Chapters group scenes; writing stages belong to the scenes.
 - **Scene rows** — the scene title and its word count. Click a scene to open it in the editor; the open scene is highlighted.
 - **ARCHIVE** — a section at the bottom listing archived scenes (see below).
 
@@ -24,14 +24,13 @@ A chapter has:
 
 - **Title** — shown everywhere.
 - **Order** — its position in the book; controlled by drag-and-drop.
-- **Status** — one of `Outline`, `First Draft`, `Revised`, `Edited`, `Final`. Shown as the status dot and driving the Dashboard status breakdown and the Manuscript view filter.
 - **Act** — optional textual label (e.g. "Act 1"). Groups chapters under act headers in the binder and in the Timeline and Plot Grid.
 - **Date / date range** — in-world dates used by the [Timeline](12-timeline.md) and [Calendar](13-calendar.md).
 - **Folder name** — derived from the title at creation. Determines the on-disk folder for the chapter's scene files.
 
 ### Creating a chapter
 
-Click **Chapter** in the toolbar. Enter a title and optionally set the status, act, and story dates, then confirm with **OK**.
+Click **Chapter** in the toolbar. Enter a title and optionally set the act and story dates, then confirm with **OK**.
 
 ### Renaming a chapter
 
@@ -42,10 +41,6 @@ Right-click the chapter in the binder → **Rename Chapter**. The folder on disk
 The creation and **Rename Chapter** dialogs include **Start**, **End**, and an optional date note. Leave End empty for a single date. Enter Gregorian dates as `2042-03-04`, or custom-calendar dates as `812.2.40`. To clear the chapter's date, empty all three fields and save.
 
 Scenes without their own dates or relative timing inherit the chapter's date range in the Timeline and Calendar. An undated chapter falls back to its act's explicit date, if present. A scene's own date takes precedence. Use these controls instead of editing chapter metadata files; the active draft stores the authoritative dates.
-
-### Setting chapter status
-
-Click the chapter's **status dot**. Each click cycles to the next status: Outline, First Draft, Revised, Edited, Final, and back to Outline. The dot's color reflects the current status.
 
 ### Reordering chapters
 
@@ -71,15 +66,15 @@ A scene has:
 - **Order** and **chapter** — its place in the manuscript; controlled by drag-and-drop.
 - **File name** — the `.novalist` file on disk, derived from the title at creation.
 - **Word count** — auto-computed, shown next to the scene in the binder.
-- **Synopsis** and **notes** — editable in the [scene-notes dock](02-interface-overview.md#the-scene-notes-dock) at the bottom of the editor. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
+- **Synopsis** — editable in [Inspector → Properties](22-context-sidebar.md). **Notes** — editable as a floating or freely docked [scene checklist](02-interface-overview.md#the-scene-notes-window) from the Notes button or `Ctrl+Shift+N`. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
 - **Date / date range** — in-world dates used by the Calendar and Timeline.
 - **Comments** and **footnotes** — anchored to the text. See [Editor](05-editor.md).
-- **Goal** and **outcome** — what the viewpoint character is trying to get here, and what they are left with. Both are editable in the scene-notes dock and as columns in the Manuscript view's outliner. Neither is ever guessed from the prose: conflict can be read out of a scene, but a goal nobody stated and an outcome nobody wrote down are precisely what a draft is missing. Read the two columns down the outliner and a scene where nothing happens says so — the outcome repeats the goal, or there is no outcome at all.
+- **Goal** and **outcome** — what the viewpoint character is trying to get here, and what they are left with. Both are editable in **Inspector → Properties** and as columns in the Manuscript view's outliner. Neither is ever guessed from the prose: conflict can be read out of a scene, but a goal nobody stated and an outcome nobody wrote down are precisely what a draft is missing. Read the two columns down the outliner and a scene where nothing happens says so — the outcome repeats the goal, or there is no outcome at all.
 - **Analysis overrides** — optional manual overrides for detected POV, emotion, intensity, conflict, and tags, used by Smart Lists and the Manuscript outliner.
 
 ### Relative story time
 
-A scene can say **how long after the previous scene** it happens instead of naming a date: an amount and a unit (minutes, hours, days, weeks) in the scene-notes dock.
+A scene can say **how long after the previous scene** it happens instead of naming a date: an amount and a unit (minutes, hours, days, weeks) in **Inspector → Properties**.
 
 Novalist stored absolute dates and nothing else, so a writer who knows a scene is two hours after the last one — and neither knows nor cares which day that is — had to invent a date or leave it blank. Blank meant the scene fell out of the Calendar and the Timeline entirely, which is how a whole book ends up looking undated.
 
@@ -205,7 +200,7 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 
 Most scenes simply happen next. Some do not, and a scene that carries a date will otherwise sort as though it happened at that point in the story.
 
-The scene notes dock has a **How it sits in time** picker: **Flashback**, **Flash-forward**, **Parallel**, **Frame**, **Dream** or **Time skip**. A **Parallel** scene also takes a **strand** name — which thread it runs on, so two strands happening at once can be told apart instead of being one undifferentiated pile. The strand only applies to parallel scenes; changing the mode away from Parallel drops it.
+**Inspector → Properties** has a **How it sits in time** picker: **Flashback**, **Flash-forward**, **Parallel**, **Frame**, **Dream** or **Time skip**. A **Parallel** scene also takes a **strand** name — which thread it runs on, so two strands happening at once can be told apart instead of being one undifferentiated pile. The strand only applies to parallel scenes; changing the mode away from Parallel drops it.
 
 The mode appears as a pill on the scene's [Timeline](12-timeline.md) entry, in both the dated and the reading-order views.
 
@@ -213,7 +208,7 @@ The mode appears as a pill on the scene's [Timeline](12-timeline.md) entry, in b
 
 Novalist works out who a scene involves from the @-mentions in its prose. Those are never wrong — you confirmed each one — but they are incomplete: a character who is in the room and says nothing leaves no mention behind, and the person a scene is really *about* is often not the one whose name appears most.
 
-The scene notes dock has an **In this scene** box. Type a name and pick a character, location, item or lore entry to add it. Each one becomes a chip; the **star** on a chip marks the entry the scene is about.
+**Inspector → Properties** has an **In this scene** box. Type a name and pick a character, location, item or lore entry to add it. Each one becomes a chip; the **star** on a chip marks the entry the scene is about.
 
 What you assign counts as an appearance everywhere presence matters — the [Wiki's](30-wiki.md) appearance timeline, co-appearance stats, and the context sidebar — alongside the mentions found in the prose, with no double counting. A scene with an assigned cast and no mentions at all is no longer invisible to those views.
 
@@ -241,25 +236,25 @@ Setting a target on the chapter itself overrides that sum, which is what you wan
 
 ## Scene stages
 
-A chapter has a **status** — one of five fixed values, described below. A scene has a **stage**, which is whatever you say it is.
+Writing state belongs to each scene through its **stage**. Chapters are containers and have no overall writing state, including no calculated state based on their scenes.
 
-The two exist for different reasons. Revision happens scene by scene: a chapter halfway through a pass holds scenes at four different points at once, and a single chapter status cannot say that. Stages are also yours to define, because no two writers agree on what the stages are — "needs a beta read" and "cut but keeping" are real stages for the people who use them and meaningless to everyone else.
+Revision happens scene by scene: scenes in one chapter can be at different points in a pass. Stages are yours to define, because no two writers agree on what the stages are — "needs a beta read" and "cut but keeping" are real stages for the people who use them and meaningless to everyone else.
 
 Set a scene's stage by right-clicking it in the binder and picking one, or **Clear stage** to make it untriaged again. A scene with a stage shows a small coloured dot before its title; one without shows nothing, because "nobody has looked at this yet" is not the same as "outlined".
 
 ### Defining your own stages
 
-**Settings → Scene stages** holds the list. A new project starts with five that mirror the chapter statuses, so nothing looks unfamiliar on the first day. Rename them, recolour them, add your own, or delete the lot and start over — clearing every stage puts the defaults back rather than leaving you with no way to stage anything.
+**Settings → Scene stages** holds the list. A new project starts with Outline, First Draft, Revised, Edited, and Final. Rename them, recolour them, add your own, or delete the lot and start over — clearing every stage puts the defaults back rather than leaving you with no way to stage anything.
 
 Each stage has a **Counts as written** switch. Turn it off for a stage that holds notes rather than prose; words in those scenes then stay out of your totals. Outline ships with it off for exactly that reason: an outline placeholder counted as progress inflates every number you use to judge whether you are on track. A scene with no stage set does count — otherwise every project's totals would drop the moment stages arrived, for no reason the writer caused.
 
 Removing a stage clears it from every scene that was at it. The scenes are untouched; they simply become untriaged again.
 
-The [Dashboard](11-dashboard.md) breaks the book down by stage, beside the chapter-status breakdown.
+The [Dashboard](11-dashboard.md) shows scene and word counts for each stage.
 
-## Status workflow
+## Scene-stage workflow
 
-A typical novelist workflow with the five built-in chapter statuses:
+A typical novelist workflow with the five built-in scene stages:
 
 1. **Outline** — bullet points or rough structure; not yet written.
 2. **First Draft** — first pass through, complete or near-complete.
@@ -267,7 +262,7 @@ A typical novelist workflow with the five built-in chapter statuses:
 4. **Edited** — line edits, prose polish, copy-edits applied.
 5. **Final** — ready to export.
 
-The [Dashboard](11-dashboard.md) shows a breakdown of chapters at each status. The [Manuscript](10-manuscript.md) view filter lets you read only chapters at a given status.
+The [Dashboard](11-dashboard.md) shows scenes at each stage. The [Manuscript](10-manuscript.md) view filter lets you read only scenes at a given stage, regardless of their chapter.
 
 ## Acts
 

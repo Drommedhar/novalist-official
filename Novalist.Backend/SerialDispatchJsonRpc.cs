@@ -1,4 +1,5 @@
 using Novalist.Backend.Extensions;
+using Novalist.Core.Services;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
 
@@ -76,6 +77,9 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "ui/progress/cancel",
         "system/ping",
         "system/shutdown",
+        "collaboration/cancel",
+        "collaboration/presence",
+        "collaboration/participants",
         // Stopping a reading is the same shape as cancelling a progress dialog:
         // a control call for something already in flight. Reading a scene aloud
         // is a run of voices/speak calls, each of which does not return until
@@ -114,6 +118,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     private static readonly string[] Unsynchronised =
     [
         "git/",
+        "collaboration/account/",
         // Backups must share the workspace queue: restore replaces files and
         // reloads models, and creation/pruning must not race that replacement.
         // Export compilation reads the current book, draft and Codex throughout
@@ -146,15 +151,17 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     ];
 
     private readonly SemaphoreSlim _gate;
-    private readonly Func<Task>? _afterRequest;
+    private readonly Func<string?, Task>? _afterRequest;
     private readonly WorkspaceCoordinator? _coordinator;
+    private readonly IFileReadCache? _fileReadCache;
 
-    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<Task>? afterRequest = null,
-        WorkspaceCoordinator? coordinator = null) : base(handler)
+    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<string?, Task>? afterRequest = null,
+        WorkspaceCoordinator? coordinator = null, IFileReadCache? fileReadCache = null) : base(handler)
     {
         _gate = gate ?? new SemaphoreSlim(1, 1);
         _afterRequest = afterRequest;
         _coordinator = coordinator;
+        _fileReadCache = fileReadCache;
     }
 
     /// <summary>Whether this method skips the queue. Exposed for the tests that
@@ -162,6 +169,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     internal static bool IsReentrant(string? method)
     {
         if (method == null) return false;
+        if (method == "collaboration/account/signOut") return false;
         if (method == "$/cancelRequest") return true;
         if (method is "export/formats" or "export/tokens") return true;
         if (method is "workspace/prepared" or "workspace/applied" or "workspace/clientClosed") return true;
@@ -201,24 +209,38 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
             _coordinator?.Validate(identity, request.Method);
             if (_coordinator != null && request.Method is { } method && WorkspaceCoordinator.ChangesWorkspace(method))
                 return await _coordinator.RunAsync(method, async () =>
-                    await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-            return await base.DispatchRequestAsync(request, targetMethod, cancellationToken)
-                .ConfigureAwait(false);
+                    await DispatchAndFinishAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+            return await DispatchAndFinishAsync(request, targetMethod, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception error) when (error is InvalidOperationException or TimeoutException)
+        catch (Exception error) when (error is InvalidOperationException or TimeoutException or IOException or System.Text.Json.JsonException)
         {
             return WorkspaceError(request, error);
         }
         finally
         {
-            try
+            lease.Active = false;
+            lease.Yield();
+        }
+    }
+
+    private async ValueTask<JsonRpcMessage> DispatchAndFinishAsync(JsonRpcRequest request, TargetMethod targetMethod,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var fileReads = ReadOnlyFileCachePolicy.AllowsCachedReads(request.Method)
+                ? _fileReadCache?.UseCachedReads()
+                : _fileReadCache?.UseFreshReads();
+            return await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (_afterRequest is not null)
             {
-                if (_afterRequest != null) await _afterRequest().ConfigureAwait(false);
-            }
-            finally
-            {
-                lease.Active = false;
-                lease.Yield();
+                // Collaboration flushes and import cleanup can mutate storage;
+                // finish the audited read scope before running either hook.
+                using var freshReads = _fileReadCache?.UseFreshReads();
+                await _afterRequest(request.Method).ConfigureAwait(false);
             }
         }
     }

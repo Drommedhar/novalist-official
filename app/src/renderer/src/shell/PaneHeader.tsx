@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, Columns2, ExternalLink, Rows2, X } from 'lucide-react'
+import { ChevronDown, Columns2, ExternalLink, Rows2, X, ListChecks } from 'lucide-react'
 import { useShellStore, type MainView } from '../stores/shellStore'
 import { HOME_VIEW, MODES, MODE_VIEWS } from './modes'
 import { useProjectStore } from '../stores/projectStore'
 import { MotionPresence } from './MotionPresence'
+import { canClosePane } from '../stores/shellPanes'
 
 /**
  * Everything a pane can show, grouped by mode.
@@ -39,7 +40,7 @@ export function PaneHeader({ paneId, view }: { paneId: string; view: MainView })
   const setActivePane = useShellStore((s) => s.setActivePane)
   const splitPaneById = useShellStore((s) => s.splitPaneById)
   const closePaneById = useShellStore((s) => s.closePaneById)
-  const canClose = useShellStore((s) => s.panes.kind === 'split')
+  const canClose = useShellStore((s) => canClosePane(s.panes, paneId))
   const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   // Positioned against the viewport rather than the header, because a pane
   // clips what overflows it - in a pane split top-and-bottom the menu would
@@ -89,6 +90,9 @@ export function PaneHeader({ paneId, view }: { paneId: string; view: MainView })
       </button>
 
       <span className="pane-header-actions">
+        <button className="pane-header-button" title={t('sceneChecklist.dock')} aria-label={t('sceneChecklist.dock')} onClick={() => void window.novalist.requestSceneNotesDock?.()}>
+          <ListChecks size={14} strokeWidth={1.75} />
+        </button>
         <button
           className="pane-header-button"
           title={t('panes.splitRight')}

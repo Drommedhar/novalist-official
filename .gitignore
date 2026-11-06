@@ -79,6 +79,16 @@ app/dist/
 
 app/dist-backend/
 
+# Steamworks is supplied locally under Valve's SDK license.
+steamworks_sdk*.zip
+steamworks_sdk*/
+/sdk/
+steam_api.dll
+steam_api64.dll
+libsteam_api.so
+libsteam_api.dylib
+steam_appid.txt
+
 # macOS signing secrets (decoded at build time from CI secrets — never commit)
 app/build/embedded.provisionprofile
 certs/
@@ -89,6 +99,8 @@ certs/
 *.cer
 *.mobileprovision
 *.provisionprofile
+*.keystore
+*.jks
 
 # Playwright run artifacts (the last-run marker was tracked by accident)
 app/test-results/
@@ -105,3 +117,17 @@ __pycache__/
 
 # Rider configuration
 .idea/
+
+# Isolated collaboration implementation worktrees.
+/.worktrees/
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml

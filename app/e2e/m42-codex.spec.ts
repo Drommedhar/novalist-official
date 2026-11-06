@@ -2,7 +2,7 @@ import { test, expect, _electron as electron, type Page } from '@playwright/test
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 
 /**
  * The Codex behaviours that reach outside their own record.
@@ -25,9 +25,9 @@ async function launch(workDir: string): Promise<{
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
   return { app, page }
 }
 

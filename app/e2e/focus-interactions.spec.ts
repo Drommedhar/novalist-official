@@ -71,9 +71,10 @@ test('F11 works in prose and panel fields, and focus width follows editor zoom',
     await expect(editor).toContainText('A page with room to grow.')
     await h.page.screenshot({ path: 'test-results/focus-zoom.png' })
 
-    await h.page.keyboard.press('Control+Shift+n')
-    const notes = h.page.getByRole('dialog', { name: 'Synopsis and notes' })
-    await notes.locator('#dock-synopsis').fill('F11 works while editing a panel.')
+    await h.page.keyboard.press('Control+Alt+i')
+    const inspector = h.page.getByRole('dialog', { name: 'Scene context' })
+    await inspector.getByRole('button', { name: 'Properties', exact: true }).click()
+    await inspector.locator('#inspector-synopsis').fill('F11 works while editing a panel.')
     await h.page.keyboard.press('F11')
     await expect(h.page.locator('.shell-focus')).toHaveCount(0)
     await expect.poll(() => h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isFullScreen())).toBe(false)

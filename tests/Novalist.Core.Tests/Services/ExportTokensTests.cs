@@ -56,7 +56,7 @@ public class ExportTokensTests
         // A copyright page is the reason most of these exist, and it wants all
         // of them on one line.
         Assert.Equal(
-            "9781234567897 / Gull Press / 2026 / 91,234 words / 312 pages",
+            $"9781234567897 / Gull Press / 2026 / {91234:N0} words / 312 pages",
             ExportTokens.Resolve(
                 "<$isbn> / <$publisher> / <$year> / <$wordcount> words / <$pagecount> pages",
                 Context() with { WordCount = 91234 }));

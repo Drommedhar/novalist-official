@@ -5,6 +5,7 @@ import { Plus, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
 import { InputDialog } from '../../shell/InputDialog'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
 
 interface CustomProp {
   key: string
@@ -18,6 +19,7 @@ export function CustomPropsEditor(): React.JSX.Element | null {
   const { t } = useTranslation()
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
+  const record = useCodexStore(state => state.selectedRecord)
   const [props, setProps] = useState<CustomProp[]>([])
   const [adding, setAdding] = useState(false)
 
@@ -27,7 +29,7 @@ export function CustomPropsEditor(): React.JSX.Element | null {
       .request<CustomProp[]>('entities/customProps', [entityType, selectedId])
       .then(setProps)
       .catch(() => setProps([]))
-  }, [entityType, selectedId])
+  }, [entityType, selectedId, record])
 
   if (!selectedId) return null
 
@@ -37,58 +39,19 @@ export function CustomPropsEditor(): React.JSX.Element | null {
       .then(setProps)
   }
 
-  const input = (prop: CustomProp): React.JSX.Element => {
-    switch (prop.propType) {
-      case 'Bool':
-        return (
-          <input
-            type="checkbox"
-            checked={prop.value === 'true'}
-            onChange={(e) => save(prop.key, e.target.checked ? 'true' : 'false')}
-          />
-        )
-      case 'Int':
-        return (
-          <input
-            className="outliner-input"
-            type="number"
-            defaultValue={prop.value}
-            onBlur={(e) => save(prop.key, e.target.value)}
-          />
-        )
-      case 'Date':
-        return (
-          <input
-            className="outliner-input"
-            type="date"
-            defaultValue={prop.value}
-            onChange={(e) => save(prop.key, e.target.value)}
-          />
-        )
-      case 'Enum':
-        return (
-          <select
-            className="outliner-input"
-            value={prop.value}
-            onChange={(e) => save(prop.key, e.target.value)}
-          >
-            {!prop.enumOptions.includes(prop.value) && <option value={prop.value}>{prop.value}</option>}
-            {prop.enumOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        )
-      default:
-        return (
-          <input
-            className="outliner-input"
-            defaultValue={prop.value}
-            onBlur={(e) => save(prop.key, e.target.value)}
-          />
-        )
-    }
+  const input = (prop: CustomProp, value: string, editable: boolean, change: (next: string | null) => void): React.JSX.Element => {
+    if (prop.propType === 'Bool') return <input type="checkbox" checked={value === 'true'} aria-disabled={!editable}
+      onChange={event => change(event.target.checked ? 'true' : 'false')} />
+    if (prop.propType === 'Enum') return <select className="outliner-input" value={value} aria-disabled={!editable}
+      onChange={event => change(event.target.value)}>
+      {!prop.enumOptions.includes(value) && <option value={value}>{value}</option>}
+      {prop.enumOptions.map(option => <option key={option} value={option}>{option}</option>)}
+    </select>
+    const type = prop.propType === 'Int' ? 'number' : prop.propType === 'Date' ? 'date' : 'text'
+    if (!metadataBinding(record, `customProperties:${prop.key}`)) return <input className="outliner-input" type={type}
+      defaultValue={value} onBlur={event => save(prop.key, event.target.value)} />
+    return <input className="outliner-input" type={type}
+      value={value} readOnly={!editable} onChange={event => change(event.target.value)} />
   }
 
   return (
@@ -97,14 +60,15 @@ export function CustomPropsEditor(): React.JSX.Element | null {
       {props.map((prop) => (
         <div key={prop.key} className="entity-rel-row">
           <span className="codex-row-name">{prop.key}</span>
-          {input(prop)}
-          <button
-            className="binder-expand"
-            aria-label={`${t('explorer.contextDelete')} ${prop.key}`}
-            onClick={() => save(prop.key, null)}
-          >
-            <X size={12} strokeWidth={2} />
-          </button>
+          <SharedMetadataField<string | null> binding={metadataBinding(record, `customProperties:${prop.key}`)} value={prop.value}
+            onChange={next => save(prop.key, next)}>
+            {({ value, editable, change }) => <>
+              {input(prop, value ?? '', editable, change)}
+              <button className="binder-expand" aria-label={`${t('explorer.contextDelete')} ${prop.key}`} onClick={() => change(null)}>
+                <X size={12} strokeWidth={2} />
+              </button>
+            </>}
+          </SharedMetadataField>
         </div>
       ))}
       <button className="binder-rail-item" onClick={() => setAdding(true)}>

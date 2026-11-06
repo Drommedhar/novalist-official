@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { ScenePresenceBadge } from '../../collaboration/ScenePresenceBadge'
+import { ScenePlanningText } from '../../collaboration/ScenePlanningText'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
+import { useStageStore } from '../../stores/stageStore'
 import { rpc as rpcClient } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
@@ -36,6 +39,7 @@ export function Corkboard(): React.JSX.Element {
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const chapters = useProjectStore((s) => s.chapters)
   const colourBy = useManuscriptStore((s) => s.colourBy)
+  const stages = useStageStore((s) => s.stages)
 
   /**
    * The colour of whatever label a scene carries, if any. Built once per
@@ -48,22 +52,23 @@ export function Corkboard(): React.JSX.Element {
       for (const scene of chapter.scenes) if (scene.labelColor) map.set(scene.id, scene.labelColor)
     return map
   }, [chapters])
-  /** Chapter status and act, so a card can be coloured by either. */
-  const chapterOf = useMemo(() => {
-    const map = new Map<string, { status: string; act: string }>()
+  /** A scene's stage color and its containing act. Chapters have no writing state. */
+  const sceneContext = useMemo(() => {
+    const colors = new Map(stages.map((stage) => [stage.key.toLowerCase(), stage.color]))
+    const map = new Map<string, { stageColor: string | undefined; act: string }>()
     for (const chapter of chapters)
       for (const scene of chapter.scenes)
-        map.set(scene.id, { status: chapter.status, act: chapter.act })
+        map.set(scene.id, { stageColor: colors.get(scene.stage?.toLowerCase() ?? ''), act: chapter.act })
     return map
-  }, [chapters])
+  }, [chapters, stages])
 
   /** The band colour for a card, under whichever dimension is selected. */
   const bandColor = (sceneId: string, pov: string | null): string | undefined =>
     sceneColour(colourBy, {
       labelColor: labelColors.get(sceneId),
       pov,
-      act: chapterOf.get(sceneId)?.act,
-      status: chapterOf.get(sceneId)?.status
+      act: sceneContext.get(sceneId)?.act,
+      stageColor: sceneContext.get(sceneId)?.stageColor
     })
 
   if (freeform) return <FreeformCorkboard bandColor={bandColor} />
@@ -102,16 +107,17 @@ export function Corkboard(): React.JSX.Element {
                     void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
                   }}
                 >
-                  {scene.title}
+                  <span className="collaboration-scene-title">{scene.title}</span>
+                  <ScenePresenceBadge sceneId={scene.sceneId} />
                 </button>
-                <textarea
+                <ScenePlanningText sceneId={scene.sceneId} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={scene.synopsis ?? ''} rows={3}><textarea
                   className="corkboard-synopsis"
                   placeholder={t('sceneNotes.synopsisPlaceholder')}
                   defaultValue={scene.synopsis ?? ''}
                   onBlur={(e) =>
                     void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)
                   }
-                />
+                /></ScenePlanningText>
                 <div className="corkboard-card-words">
                   {scene.wordCount.toLocaleString()} {t('shell.words')}
                 </div>
@@ -171,7 +177,7 @@ function FreeformCorkboard({
   const onPointerDown = (sceneId: string, e: React.PointerEvent<HTMLDivElement>): void => {
     // Only a drag on the card body moves it. The synopsis box and the title
     // button are things to use, not handles to pull.
-    if ((e.target as HTMLElement).closest('textarea, button')) return
+    if ((e.target as HTMLElement).closest('textarea, button, .md-editor')) return
     const place = places[sceneId] ?? { x: 0, y: 0 }
     dragging.current = { sceneId, dx: e.clientX - place.x, dy: e.clientY - place.y }
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -250,14 +256,15 @@ function FreeformCorkboard({
                   void useProjectStore.getState().openScene(scene.chapterGuid, scene.sceneId)
                 }}
               >
-                {scene.title}
+                <span className="collaboration-scene-title">{scene.title}</span>
+                <ScenePresenceBadge sceneId={scene.sceneId} />
               </button>
-              <textarea
+              <ScenePlanningText sceneId={scene.sceneId} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={scene.synopsis ?? ''} rows={3}><textarea
                 className="corkboard-synopsis"
                 placeholder={t('sceneNotes.synopsisPlaceholder')}
                 defaultValue={scene.synopsis ?? ''}
                 onBlur={(e) => void setSynopsis(scene.chapterGuid, scene.sceneId, e.target.value)}
-              />
+              /></ScenePlanningText>
               <div className="corkboard-card-words">
                 {scene.wordCount.toLocaleString()} {t('shell.words')}
               </div>

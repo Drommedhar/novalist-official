@@ -39,9 +39,9 @@ public sealed class LanguagePacksRpcTests : IDisposable
     }
 
     /// <summary>Reads through Rescan rather than LanguagePacks so the lookup
-    /// re-registers this workspace's folders first. The lexicon loader keeps its
-    /// user directory in a process-wide static, and every other test class that
-    /// builds a Workspace writes to it.</summary>
+    /// re-registers this workspace's folders first. Earlier Workspace tests may
+    /// have left a different process-wide directory registered; this collection
+    /// prevents another Workspace from changing it during the assertion.</summary>
     private LanguagePackDto Pack(string code) =>
         _rpc.Rescan().Single(p => p.Code == code);
 

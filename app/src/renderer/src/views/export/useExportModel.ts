@@ -284,7 +284,7 @@ function useExportRun(model: ExportInputs) {
       } else if (window.novalist.isMobile) {
         if (!window.novalist.shareExport) throw new Error('Export sharing is unavailable')
         const shared = await window.novalist.shareExport(output)
-        setResult(t(shared ? 'export.exportSuccess' : 'export.exportCancelled'))
+        setResult(t(shared === 'handed-off' ? 'export.shareHandedOff' : shared ? 'export.exportSuccess' : 'export.exportCancelled'))
       } else {
         setResult(t('export.exportSuccess'))
       }

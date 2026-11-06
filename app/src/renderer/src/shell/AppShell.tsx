@@ -5,6 +5,8 @@ import { useShellCommands } from './useShellCommands'
 import { useAppUpdateState } from './appUpdateState'
 
 import { WindowClosingDialog } from './WindowClosingDialog'
+import { CollaborationTransferDialog } from '../views/settings/CollaborationTransferStatus'
+import { CollaborationToolbar } from '../collaboration/CollaborationToolbar'
 import { useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
@@ -18,13 +20,15 @@ import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
 import { MobileShell } from './MobileShell'
 import { MobileWelcome } from './MobileWelcome'
-import { SceneNotesDock } from './SceneNotesDock'
+import { useSceneNotesContext } from './useSceneNotesContext'
+import { useSceneNotesDocking } from './sceneNotesDocking'
 
 import { StartScreen } from './ProjectLibrary'
 import { FocusMode } from './FocusMode'
 
 import { useBackupScheduler } from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
+import { usePrepareSceneContext } from './usePreparedSceneContext'
 
 import { BINDER_MIN, BINDER_MAX, panelWidthForShell, anyPaneShows, useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
@@ -38,10 +42,13 @@ import '../styles/desktop.css'
 import '../styles/desktop-views.css'
 
 export function AppShell(): React.JSX.Element {
+  useSceneNotesContext()
+  useSceneNotesDocking()
   const { t } = useTranslation()
   const closeStage = useWorkspaceWindow()
   useBackupScheduler()
   useSpellCheck()
+  usePrepareSceneContext()
   const binderVisible = useShellStore((s) => s.binderVisible)
   const binderWidth = useShellStore((s) => panelWidthForShell(s.binderWidth, s.shellWidth, BINDER_MIN, BINDER_MAX))
   const modePanelVisible = useShellStore((s) => s.modePanelVisible)
@@ -56,12 +63,9 @@ export function AppShell(): React.JSX.Element {
   const capacityChanging = previousCapacity.current !== shellCapacity
   useLayoutEffect(() => { previousCapacity.current = shellCapacity }, [shellCapacity])
   const mainView = useShellStore((s) => s.mainView)
-  const inspectorTab = useShellStore((s) => s.inspectorTab)
-  const notesDockVisible = useShellStore((s) => s.notesDockVisible)
   // The surfaces beside the content area belong to the window rather than to
   // one pane, so they ask whether the window holds the view at all - not what
   // the pane the writer last clicked in happens to be showing.
-  const editorOpen = useShellStore((s) => anyPaneShows(s.panes, ['write']))
   const sceneContextOpen = useShellStore((s) => anyPaneShows(s.panes, ['write', 'manuscript']))
   const extView = useShellStore((s) => s.extView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
@@ -132,6 +136,7 @@ export function AppShell(): React.JSX.Element {
           status bar in place made it a wider editor rather than a place to
           write. Everything is a keystroke away again. */}
       {!isMobile && !focused && <Toolbar />}
+      {isMobile && <div className="mobile-collaboration-bar"><CollaborationToolbar /></div>}
       {!isMobile && !focused && <ModeRail />}
       {!isMobile && !focused && updateNotice && (appUpdate || extUpdates.length > 0) && <div className="update-banner" role="status">
         <span>{downloading ? t('desktopRefresh.backgroundDownload', { percent: updateProgress ?? 0 }) : ready ? t('desktopRefresh.ready') : t('desktopRefresh.available')}</span>
@@ -141,7 +146,7 @@ export function AppShell(): React.JSX.Element {
       <div className="shell-body" inert={installing}>
         {isMobile ? (
           isLoaded ? (
-            <MobileShell />
+            !workspaceSuspended ? <MobileShell /> : null
           ) : !workspaceSuspended && !closingProject ? (
             /* No project yet. The desktop shell's welcome content, in the
                mobile frame - the rail and the panes it sits beside are not
@@ -171,9 +176,6 @@ export function AppShell(): React.JSX.Element {
                   onOpenPath={(path, bookId) => openProject(path, bookId)}
                 />
               ) : null}
-              <MotionPresence disabled={disablePanelMotion}>
-                {!workspaceSuspended && editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
-              </MotionPresence>
             </div>
             <MotionPresence disabled={disablePanelMotion}>
               {!workspaceSuspended && showInspector && !focused && !extView && <Inspector />}
@@ -189,6 +191,7 @@ export function AppShell(): React.JSX.Element {
       {!isMobile && !focused && (!isLoaded || chrome.status) && <StatusBar />}
       <AppShellDialogs />
     </div>
+    <CollaborationTransferDialog />
     {closeStage && <WindowClosingDialog stage={closeStage} />}
     {closingProject && <div className="dialog-overlay" role="status" aria-live="polite">
       <div className="dialog-card"><p>{t('bookshelf.closingProject')}</p></div>

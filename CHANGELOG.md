@@ -21,7 +21,29 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Collaboration** — share or join projects from the top bar over direct TCP or an encrypted relay, with private single-use invitations, optional browser sign-in and relay setup guidance. The host stays online while writers collaborate. Join into a new folder or reuse an existing copy, with transfer progress and cancellation. Books, drafts, scenes, Codex entries, research and assets synchronize. Edit scene, Manuscript and Codex prose together with participant cursors and individual undo; presence badges and field locks show who is working where. Conflicting edits are kept in recovery copies. Continue writing prose through connection interruptions, reconnect or leave with a local copy. Hosts can remove writers or end the session. Optional Steam builds support friend invitations and use Steam for application updates while retaining extension updates.
+
+- **Dockable scene checklist** — open Notes from the toolbar in a movable window or dock it above, below or beside any content pane. Resize panels and save layouts; docking position, size and visibility survive restarts. Wide panels arrange checklist items left to right with the notes editor below. Bullet lists become checkboxes with expandable details and a completed-items group, remembering expanded sections per scene. Follow the active scene or hold one in place, pin the floating window or let it hide while working behind it, and edit the original notes at any time. Checklist and note edits synchronize in shared projects. The floating window uses native glass on supported Macs; scene properties remain in the Inspector.
+
+### Changed
+
+- Writing state now belongs to scenes: shared filters, Corkboard colours, and Dashboard progress use scene stages. Chapter-status controls and Manuscript badges are removed. Existing extensions and saved chapter-status queries keep their behavior, and restored chapter filters are visibly labeled and can be cleared.
+
+### Fixed
+
+- Creating a Codex entry with Enter closes the dialog without opening it again.
+- Saved scene synopses remain visible when returning to a scene or reopening its properties.
+- Manuscript shows a loading indicator while opening a book and avoids loading the manuscript twice.
+- Codex tables show saved groups for locations, items, lore and custom entries.
+- Restoring a World Bible revision keeps the entry in the World Bible. New World Bible revisions are available across books, and settled entries reject revision restores until unlocked.
+- Opening a folder from the bookshelf now shows when it is loading, reports an error if the project cannot be opened, and prevents repeated opening attempts while one is in progress.
+- Large projects and individual Codex entries open faster.
+- Inspector context sections appear together once loaded instead of arriving separately.
+- Switching away from an untouched scene no longer triggers unnecessary saves and delays.
+- Changing Manuscript filters preserves pending prose edits, including typing during a slow reload. Saved scene lists with no matches show an empty result instead of the whole book.
+- AI Assistant context selection can include Codex entries not mentioned in the open scene, or select entries without an open scene. Location, item and lore descriptions reach the model even when the entry has no free-text sections. Entry and section AI exclusions remain enforced. Requires the matching AI Assistant extension update.
 
 ---
 

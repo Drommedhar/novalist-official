@@ -1,15 +1,8 @@
 import { BookAnalyticsCard } from './BookAnalyticsCard'
 import { type DashboardDto, type BookDashboardState } from './dashboardModel'
+import { useDashboardRead } from './useDashboardRead'
 
-const STATUS_SUMMARY: { key: keyof DashboardDto; label: string }[] = [
-  { key: 'outlineCount', label: 'dashboard.statusOutline' },
-  { key: 'firstDraftCount', label: 'dashboard.statusFirstDraft' },
-  { key: 'revisedCount', label: 'dashboard.statusRevised' },
-  { key: 'editedCount', label: 'dashboard.statusEdited' },
-  { key: 'finalCount', label: 'dashboard.statusFinal' }
-]
-
-export function DashboardWordStatistics({ data, t, statusTotal }: { data: DashboardDto; t: BookDashboardState['t']; statusTotal: BookDashboardState['statusTotal'] }): React.JSX.Element {
+export function DashboardWordStatistics({ data, t }: { data: DashboardDto; t: BookDashboardState['t'] }): React.JSX.Element {
   return <>
       <div className="dashboard-card">
         <div className="dashboard-avg-grid">
@@ -24,41 +17,13 @@ export function DashboardWordStatistics({ data, t, statusTotal }: { data: Dashbo
         </div>
       </div>
 
-      {data.statusBreakdown.length > 0 && (
-        <div className="dashboard-card">
-          <div className="dashboard-card-title">{t('dashboard.progressBreakdown')}</div>
-          {data.statusBreakdown.map((s) => (
-            <div key={s.status} className="dashboard-status-row">
-              <span className="dashboard-status-dot" data-status={s.status} />
-              <span className="dashboard-status-name">{t(`dashboard.status${s.status}`)}</span>
-              <div className="dashboard-bar-track dashboard-status-track">
-                <div
-                  className="dashboard-bar-fill"
-                  style={{ width: `${Math.round((s.count / statusTotal) * 100)}%` }}
-                />
-              </div>
-              <span className="dashboard-status-count">
-                {s.count} - {s.wordCount.toLocaleString()} {t('shell.words')}
-              </span>
-            </div>
-          ))}
-          <div className="dashboard-status-summary">
-            {STATUS_SUMMARY.map((s) => (
-              <div key={s.key}>
-                <div className="dashboard-summary-count">{data[s.key] as number}</div>
-                <div className="dashboard-summary-count-label">{t(s.label)}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
   </>
 }
 
 export function DashboardStoryProgress({ stageBreakdown, t, stageTotal, data }: { stageBreakdown: BookDashboardState['stageBreakdown']; t: BookDashboardState['t']; stageTotal: BookDashboardState['stageTotal']; data: DashboardDto }): React.JSX.Element {
+  const echoes = useDashboardRead<DashboardDto['echoPhrases']>(window.novalist.isMobile ? 'dashboard/echoPhrases' : null) ?? data.echoPhrases
   return <>
-      {/* Scene stages, which the chapter breakdown above cannot express: a
-          chapter mid-revision holds scenes at four different stages. */}
+      {/* Writing progress belongs to individual scenes. */}
       {stageBreakdown.length > 0 && (
         <div className="dashboard-card">
           <div className="dashboard-card-title">{t('stages.title')}</div>
@@ -123,12 +88,12 @@ export function DashboardStoryProgress({ stageBreakdown, t, stageTotal, data }: 
         </div>
       )}
 
-      {data.echoPhrases.length > 0 && (
+      {echoes.length > 0 && (
         <div className="dashboard-card">
           <div className="dashboard-card-title">{t('dashboard.echoFinder')}</div>
           <div className="dashboard-echo-desc">{t('dashboard.echoDescription')}</div>
           <div className="dashboard-echoes">
-            {data.echoPhrases.map((e) => (
+            {echoes.map((e) => (
               <span key={e.phrase} className="dashboard-echo">
                 {e.phrase} <b>{e.count}</b>
               </span>

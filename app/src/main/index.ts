@@ -11,6 +11,7 @@ import {
 import { join } from 'node:path'
 import { readFileSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
+import { DesktopCollaborationServices } from './collaboration/DesktopCollaborationServices'
 import { WorkspaceWindows } from './workspace-windows'
 import { WindowCloseCoordinator } from './window-close'
 import type { WorkspaceEvent } from '../shared/workspaceProtocol'
@@ -24,16 +25,22 @@ import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 import { SCHEME, parseDeepLink, deepLinkFromArgv, type DeepLink } from './deeplink'
 import { installFocusWindow } from './focus-window'
+import { registerSceneNotesWindow } from './scene-notes-window'
 
 // Name the app before anything reads it (menu/About/dock/window title) so the
 // UI never shows the default "Electron".
 app.setName('Novalist')
 
 const backend = new BackendProcess()
+const collaboration = new DesktopCollaborationServices(join(process.env.NOVALIST_SETTINGS_DIR ?? app.getPath('userData'), 'collaboration', 'credentials'))
 const workspaceWindows = new WorkspaceWindows(backend.router, 15_000, (error) => backend.requireResync(error))
 const windowCloses = new WindowCloseCoordinator()
 backend.onNotification((message) => workspaceWindows.receive(message))
-backend.onRestart(() => workspaceWindows.recover())
+backend.onRequest((method, params) => collaboration.request(method, params))
+backend.onRestart(async () => {
+  await collaboration.reset()
+  await workspaceWindows.recover()
+})
 backend.onResync(() => workspaceWindows.resync())
 
 function attachBackendPort(sender: WebContents): void {
@@ -146,6 +153,8 @@ function createWindow(): BrowserWindow {
   attachWindowLifecycle(win)
   return win
 }
+
+registerSceneNotesWindow(attachWindowLifecycle, () => mainWindow)
 
 /**
  * The main window, opened if it is gone and brought forward if it is not.
@@ -429,4 +438,5 @@ app.on('before-quit', (event) => {
 
 app.on('will-quit', () => {
   backend.dispose()
+  void collaboration.reset()
 })

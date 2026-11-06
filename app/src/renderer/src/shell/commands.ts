@@ -137,6 +137,8 @@ const APPLICATION_COMMANDS: CommandDef[] = [
     labelKey: 'shell.toggleSceneNotes',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
+    home: 'projectBar',
+    homeNote: 'The floating scene checklist needs a visible restore control in every workspace.',
     defaultGesture: 'Ctrl+Shift+N',
     available: projectOpen,
     run: () => shell().toggleNotesDock()

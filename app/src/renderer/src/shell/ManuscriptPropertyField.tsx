@@ -14,10 +14,13 @@ export function ManuscriptPropertyField(props: {
   value: string
   onCommit: (value: string | null) => void
   className?: string
+  readOnly?: boolean
+  commitOnChange?: boolean
 }): React.JSX.Element {
   const { t } = useTranslation()
   const { property, value, onCommit } = props
   const className = props.className ?? 'inspector-input'
+  const textValue = props.commitOnChange ? { value } : { defaultValue: value }
 
   switch (property.type) {
     case 'Bool':
@@ -26,6 +29,7 @@ export function ManuscriptPropertyField(props: {
           type="checkbox"
           aria-label={property.label}
           checked={value === 'true'}
+          aria-disabled={props.readOnly}
           onChange={(e) => onCommit(e.target.checked ? 'true' : null)}
         />
       )
@@ -35,9 +39,11 @@ export function ManuscriptPropertyField(props: {
           className={className}
           type="number"
           aria-label={property.label}
-          defaultValue={value}
-          key={value}
-          onBlur={(e) => onCommit(e.target.value)}
+          {...textValue}
+          key={props.commitOnChange ? undefined : value}
+          readOnly={props.readOnly}
+          onChange={event => { if (props.commitOnChange) onCommit(event.target.value) }}
+          onBlur={event => { if (!props.commitOnChange && !props.readOnly) onCommit(event.target.value) }}
         />
       )
     case 'Date':
@@ -47,6 +53,7 @@ export function ManuscriptPropertyField(props: {
           type="date"
           aria-label={property.label}
           value={value}
+          readOnly={props.readOnly}
           onChange={(e) => onCommit(e.target.value)}
         />
       )
@@ -56,6 +63,8 @@ export function ManuscriptPropertyField(props: {
           className={className}
           aria-label={property.label}
           value={value}
+          aria-disabled={props.readOnly}
+          onKeyDown={event => { if (props.readOnly && event.key !== 'Tab') event.preventDefault() }}
           onChange={(e) => onCommit(e.target.value)}
         >
           <option value="">{t('props.unset')}</option>
@@ -71,9 +80,11 @@ export function ManuscriptPropertyField(props: {
         <input
           className={className}
           aria-label={property.label}
-          defaultValue={value}
-          key={value}
-          onBlur={(e) => onCommit(e.target.value)}
+          {...textValue}
+          key={props.commitOnChange ? undefined : value}
+          readOnly={props.readOnly}
+          onChange={event => { if (props.commitOnChange) onCommit(event.target.value) }}
+          onBlur={event => { if (!props.commitOnChange && !props.readOnly) onCommit(event.target.value) }}
         />
       )
   }

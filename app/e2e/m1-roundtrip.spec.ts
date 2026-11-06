@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { enterWriting } from './harness'
 
 /**
@@ -36,11 +36,11 @@ test('project + binder + editor round-trip', async () => {
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
 
-  // Backend handshake: status bar shows the core version like "Core connected (1.13...)".
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  // Wait for the backend handshake before opening a project.
+  await waitForAppReady(page)
 
   // connect() must be idempotent: a repeat call (as React StrictMode triggers in
   // dev) must not open a second port channel and orphan the live one. After a

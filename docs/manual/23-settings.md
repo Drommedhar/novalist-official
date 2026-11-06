@@ -12,12 +12,14 @@ Settings is also available before you open a project. Controls elsewhere in the 
 
 Settings shows **one section at a time**. The rail down the left side groups every section under four headings, and the header carries a search box. On desktop, the category list and section content scroll independently, keeping the heading and search visible. Selecting another section starts at its top. In a narrow split pane, the category list becomes a short scrollable area above the section.
 
+On tablets, the category list stays in a column to the left of the selected section. The sidebar and binder can be collapsed from the top bar to give the form more space.
+
 | Category | What lives there |
 | --- | --- |
 | **General** | Appearance, Accessibility, Keyboard shortcuts, Theme tokens |
 | **Writing** | Editor, Writing assistance |
 | **Project** | Writing goals, Word completion, Templates, Scene stages, Scene labels, Groups and factions, Scene templates, Tags, Scene and chapter fields |
-| **System** | Backups, Updates and integrations, Language packs, Diagnostics, Extensions |
+| **System** | Backups, Updates and integrations, Collaboration, Language packs, Diagnostics, Extensions |
 
 - **Search** — type a word (for example `grammar`, `deadline`, `accent`, `github`) and the results name the **individual controls** that match, not just the sections holding them. Picking a result opens its section and takes you to the control itself. If nothing matches, Settings says so rather than showing you an empty page.
 - **Category rail** — pick a section to open it. Only that section is on screen, so a long page of unrelated controls is no longer between you and the one you came for.
@@ -25,6 +27,265 @@ Settings shows **one section at a time**. The rail down the left side groups eve
 Settings opens **without a project**, so your global preferences are reachable the moment Novalist starts. Controls that need a project are visibly disabled rather than missing, so you can see what a project would give you.
 
 When you reach Settings from a control elsewhere — the editor's **More writing settings**, for example — the header carries a **Back to...** link that returns you to the view you came from.
+
+## Collaboration
+
+Collaboration is available from **Collaborate** in the top bar, without opening
+Settings. Select **Share** for the open project or **Join** for an invitation.
+With no project open, only joining is available. Connection choices follow the
+runtime: **Direct connection (TCP)** is selected by default in the regular app
+and on mobile; Steam-enabled builds select **Steam** when its runtime is available.
+**Relay server** remains an option in both editions. Active sessions keep their
+connection type, and a retained relay project opens its reconnect controls.
+During a session, the panel shows connection status, invitations and the end-session
+action. Owners can expand **Manage shared access** for membership controls.
+
+iPhone and iPad offer **Relay server** and **Direct TCP**, and can collaborate with
+desktop writers using either mode. Steam is available only on desktop. Mobile joins
+create a local copy in **Files → Novalist** by default; change the folder name or
+choose another folder before joining. You can also reuse an existing local project.
+Keep Novalist in the foreground during collaboration: iOS can suspend network activity
+when you switch apps or lock the device. Pending edits are saved before suspension,
+and the connection retries when the app runs again. A mobile host must remain open
+and active for other writers to join or synchronize.
+
+**Getting a relay server:** the community implementation is
+[QF0xB/novalist-sync-server](https://github.com/QF0xB/novalist-sync-server).
+That GitHub project provides the server software; its URL is not an address you
+can connect to from Novalist. Ask the person running your group's server for its
+HTTPS address, or run your own instance:
+
+1. Get the source from the community project and install the .NET 10 SDK.
+2. Follow the upstream [relay setup guide](https://github.com/QF0xB/novalist-sync-server/blob/main/docs/relay.md).
+   Enable relay mode with `Relay__Enabled=true`, configure HTTPS and your chosen
+   sign-in policy, then run `dotnet run --project src/Novalist.Sync.Server` from
+   the server repository. Relay mode does not need PostgreSQL or migrations.
+3. Give the running server's HTTPS base address to the writers who will use it.
+   Novalist expects this address, not a GitHub URL, sign-in-provider URL or
+   `/relay/v1/...` endpoint.
+
+In **Collaborate** or **Settings → Collaboration**, select **Relay server** and
+enter that address. The relay form includes **Community server project** and
+**Relay setup guide** buttons that open these resources in your browser.
+Novalist checks whether that server requires authentication. If it does,
+**Share this project**, **Join shared project** and reconnecting open browser
+sign-in automatically when needed; you can also select **Sign in** beforehand.
+Complete sign-in in your browser and return to Novalist. If the server permits
+anonymous sessions, enter **Your name** and share or join directly without an
+account. Novalist remembers that name on this device. The name is a participant
+label, not proof of identity; invitation and device checks still protect access.
+**Cancel sign-in** stops a pending request. Expand **Account** to sign out.
+**Sign out** removes the remembered account from this device.
+
+For authenticated sessions, your displayed name comes from the sign-in provider's `name` profile claim; if it
+is absent, the account identifier is used. Change the name in that provider's
+profile, then sign out and sign in again. The relay has no separate username or
+account-profile editor. The server administrator must configure the provider to
+include `name` in the ID token and grant the desktop the `profile` scope. Direct
+TCP and Steam sessions let you choose **Your name** before starting or joining;
+Steam fills it from your Steam profile.
+If a saved sign-in has expired, Novalist offers **Sign in** again. If its provider
+is unavailable, you can retry later or use **Forget saved sign-in** to remove that
+device's saved account. Sharing checks sign-in before preparing the project.
+
+The server must publish its client configuration. Relay mode is disabled by
+default; administrators enable it with `Relay__Enabled=true`. They can enable
+anonymous relay sessions with `Relay__RequireAuthentication=false`; authentication
+remains required by default. Older servers without the new policy flag still
+require sign-in, and a discovery error never enables anonymous access. Normal connections
+use HTTPS; HTTP is accepted for local loopback testing. Credentials are saved
+using the operating system's encryption service, outside project files. If that
+service is unavailable, Novalist reports the error instead of saving credentials
+without encryption.
+
+On iPhone and iPad, sign-in uses the system authentication browser and credentials
+are kept in Keychain. The provider's native client must register
+`com.novalist.app:/oauth/callback` as an additional redirect URI with PKCE; desktop
+loopback redirects stay registered.
+
+With a project open, select **Share this project** to start hosting it.
+The server forwards encrypted packets between connected writers. It stores no
+project files, snapshots or edit history. Keep the host's project and session open;
+other writers cannot join while the host is offline.
+
+Novalist renews sign-in on existing relay connections, so routine token expiry
+keeps the same session and invitation links. A temporary sign-in-provider outage
+has a server-configured grace period (five minutes by default). Revoked access
+still ends the affected connection; a revoked host ends its session.
+
+Relay administrators can limit connections and traffic. If the server is at its
+limit, try joining again after another connection ends. Novalist also bounds
+simultaneous relay connections to protect the host from repeated join requests.
+
+**Create invitation** produces a private link for one collaborator, valid
+for 24 hours. Send it only to the person you want to invite. They connect to the
+same server, select **Join**, paste the link, choose a parent folder for the new local copy,
+and select **Join shared project**. The folder name starts as **Shared project**;
+you can change it before joining. The form shows the destination and explains
+what is still needed. Alternatively, select **Use an existing local
+project** and choose its folder. Novalist compares relative paths and SHA-256
+hashes, reuses matching files, and requests only missing or changed files from
+the host. Local differences are preserved in **Recovered edits** before the shared
+version is installed. Progress shows scanning, comparison and transfer, with file
+counts, reused files, transferred bytes and **Cancel synchronization**. On the
+host, preparation counts describe files processed locally, not uploaded data.
+The dialog stays in startup until the live session is ready.
+Starting sharing does not rewrite unchanged project content.
+
+The synchronized project includes every book and draft,
+Codex entries, images and research. Personal settings, credentials, local
+snapshots and executable extensions are excluded.
+
+Synchronized scenes use the existing scene editor and continuous **Manuscript** view.
+Both show remote selections and preserve per-writer undo. Moving between views
+keeps unsaved shared edits available for retry. In Manuscript, your focused scene
+is the one shown as active to other writers. Board drops for POV and custom
+properties respect the same named focus locks as the inspector and outliner.
+Prose edits arrive automatically
+and remain saved locally during a connection interruption. **End this session**
+keeps the local project available for opening and exporting. Ending the host's
+session stops collaboration for everyone and invalidates its invitations.
+End the session before signing out or changing servers.
+
+To return later, open your retained project and select **Reconnect to shared
+project** while the same host session is still running. Novalist remembers the
+connection on this device. Sign in with the same account if needed. After the
+host ends a session, they must start a new session and create a new invitation.
+Changes made while disconnected are kept locally. Differences in an existing
+copy are preserved under its **Recovered edits** folder during synchronization.
+Your personal editor settings and local version history remain in the project.
+
+After ending a session, enter a new local folder name, choose its parent folder,
+and select **Create independent copy** to make a separate project. It keeps all
+the project content with a new identity and has no connection to the original
+shared project. You can open and share it as its owner.
+
+The owner can use **Manage shared access** to disconnect a collaborator and revoke
+their session access, or **End session for everyone** to stop hosting. Remaining
+writers keep working while the host remains online. Everyone retains their local
+project copy. A writer whose access ends can end their session to continue locally.
+
+The owner can invite a removed writer again with a new invitation. End the old
+session before accepting it. Choose a new folder or reuse your existing local
+copy. Old invitations cannot restore removed access.
+
+Shared scenes show other writers' cursors and selections. Cursors follow the
+text as it changes and disappear when their writer leaves or stops responding.
+Small badges beside scene titles in the binder, pinned scenes, outliner and
+corkboard show how many other writers are working there, even while you view a
+different scene. Hover over a badge to see their names. Badges follow the current
+book and draft, so another draft's copy of a scene does not show the same presence.
+Codex list badges and the open entry's header also show who is **Viewing** or
+**Editing** that entry. Focusing a field marks its writer as editing; moving
+focus away restores viewing, and leaving the entry clears that presence.
+
+Codex descriptions, distinguishing features and free-form sections use the existing
+Markdown editor. Writers can edit the same prose together, see one another's
+cursors, and undo their own edits without removing another writer's writing.
+Sections keep their writing history when their titles change.
+Scene synopsis, notes, goal and outcome use the same collaborative editor in the
+inspector and notes dock. The Outliner and corkboard edit the same planning text,
+so changing views preserves the shared writing. Empty fields and newly created
+scenes are ready for both writers immediately; moving a scene keeps its planning
+text and editing history together.
+Renaming a shared Codex entry updates its scene mentions, section links, relationships,
+parent references and scene POV in both writers' copies. A book's local entries keep
+their name references separate from same-named entries in other books.
+A focused reference field must be released
+before the rename can proceed. Manually worded mentions, aliases and ordinary
+prose keep their wording.
+If a connection or app interruption happens after a name was saved, retrying the
+rename or reopening its hosted session finishes the remaining reference updates.
+Fields that another writer changed meanwhile keep their new values; an active
+reference lock must still be released before the remaining updates can finish.
+
+Codex non-prose fields and scene and Research metadata acquire an exclusive editing
+lock when focused. This includes scene timing, cast, analysis overrides and custom
+fields in the inspector, plus POV, word targets and custom columns in the Outliner.
+Research titles, types, tags, status, ratings, references and custom fields use
+the same locks. Note and Link content stays collaborative prose; a file item's
+path uses a focus lock. Changing an item between those types preserves its content.
+Scene stage, label, pin, activity, export and word-target actions briefly acquire
+the same kind of lock and leave a locked field unchanged. Research filing and
+fetched titles respect those locks too. Wait for the field to become editable;
+another writer cannot change it until you leave the field. Moving focus saves
+the value before releasing the lock. These edits require an active connection.
+When a writer focuses a field, the same name badge used by editor cursors appears beside it for other participants,
+without those participants needing to click the field. The indicator clears when
+the writer leaves the field.
+AI and reader visibility settings, section visibility and name-matching controls use these
+locks too. Settling or unsettling an entry and moving a place under another place
+briefly acquire the relevant field lock before changing it.
+The Codex table uses the same named locks for its cells and shared Markdown editing
+for descriptions, so changes made in the table and the detail form stay together.
+Locks expire after a disconnected writer stops renewing them. An unsent draft
+remains visible when you leave and reopen the Codex view.
+If saving fails, use **Retry save**. When the lock has expired or the connection
+cannot be restored, **Save a recovery copy** keeps your value separately in the
+project's `Recovered edits` folder. **Show recovery copy** reveals that file so
+you can reuse the value later. It does not replace the shared field.
+
+Project saves also synchronize structure, new scenes and Codex entries, research,
+and binary assets. A writing language set for the project travels with it, so
+automatic scene conflict, emotion, intensity and tags use that language on each
+computer. Each writer keeps their own interface language. A new scene becomes a
+collaborative editor immediately. Moving
+a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
+arriving afterward are saved under `Recovered edits`. Conflicting file changes
+also retain a recovery copy instead of silently replacing the shared version.
+
+For a direct session, choose **Direct connection (TCP)** in **Connection type**.
+Enter the name other writers should see, a reachable host address and a listening
+port, then select **Host direct session**. Port `0` chooses an available port and
+includes it in the invitation. Use `127.0.0.1` for two Novalist instances on the
+same computer; other computers need an address they can reach and a firewall
+rule allowing that port. **Create invitation** gives one writer a private link
+valid for an hour. They choose the direct connection type, enter their name,
+paste the link, choose a new folder or an existing local project and select **Join direct session**.
+Direct sessions use the same project synchronization, editor and focus locks.
+When someone joins, the host sees a synchronization dialog. Novalist saves any
+pending edits and pauses host editing until the joining writer has installed
+the initial copy. Editing resumes after completion, cancellation or disconnection.
+The host can cancel the incoming synchronization from the dialog. This applies
+to relay-server and Steam sessions too.
+The host must stay online. Ending the host's session stops live collaboration
+for everyone; each participant retains their local copy. Starting a new session
+does not send pending edits from an ended session.
+
+Steam-enabled builds select **Steam** by default when the runtime is available. Your Steam display
+name is filled in automatically; you can change it before choosing **Host Steam session**.
+Then choose **Invite Steam friends**, select a
+friend and press **Send Steam invitation**. After accepting in Steam, the friend
+gets a **Steam project invitation** dialog inside Novalist, including when the
+invitation launches the app. Choose a parent folder and a name for a new local
+copy, or enable **Use an existing local project** and select that project folder.
+**Accept and join** starts synchronization only after a destination is selected;
+canceling leaves the current project untouched. If another collaboration session
+is already open, close it first and accept the invitation again. Steam keeps
+listening for invitations after a session ends.
+
+You can also create and share the private invitation link manually. The invited
+writer pastes it into the Steam form and chooses a new folder or existing copy. Steam routes
+the connection, so neither writer needs to enter an IP address or forward a port.
+The host must stay online. A missing Steam runtime, app registration or account
+access is shown before the host and join controls become available. Relay-server
+sessions remain available to both Steam and non-Steam builds.
+
+The Steam adapter compiles against Steamworks.NET and uses reliable
+SteamNetworkingSockets messages for the same authenticated project session used
+by TCP. SDK 1.65 initialization, friends access and hosting are tested locally.
+Invitation acceptance, project transfer, edits in both directions and cursor names
+have also been verified between Windows and Apple Silicon macOS using two Steam
+accounts. Both machines must keep Novalist and Steam running. The default
+open-source build excludes the native integration.
+
+During a connection interruption, keep writing in already shared scenes and Codex prose. Changes
+to structure, assets and other project details require reconnecting first.
+Personal editor settings still save locally. Changes refused by the host and
+files changed outside collaboration are preserved in `Recovered edits` before
+the shared version is restored. End the session before restoring a whole-project
+backup. Extensions must use collaborative prose and field editing when changing
+content already bound to a shared editor or focus lock.
 
 ## Global vs project settings
 
@@ -179,7 +440,7 @@ The scope decides where the field is asked for:
 
 | Scope | Edited in |
 | --- | --- |
-| Scene | The scene notes dock, and the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields) when ticked as a column |
+| Scene | The Inspector → Properties, and the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields) when ticked as a column |
 | Chapter | The Chapter dialog |
 | Plotline | Right-click a plotline in the [Plot Grid](08-plot-grid.md) and pick **Your fields** |
 | Timeline event | The event editor in the [Timeline](12-timeline.md), once the event exists |
@@ -242,7 +503,9 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 
 Startup update availability appears in a dismissible banner. Choose **Review update** to read release notes; **Help → Check for Updates** opens the same review. Failed checks show an error and **Check again**, without claiming the application is current.
 
-For installations updated by an external tool or package manager, set `NOVALIST_DISABLE_SELF_UPDATE=1` in Novalist's environment before launching it. This blocks application update checks, downloads and installation, including manual requests. It hides **Help → Check for Updates**, the update button in **About**, and the application-update setting and its search result. Startup extension checks, extension settings and updates through the **Extensions** store remain available. Unset the variable or set it to `0`, then restart Novalist to restore application updates. Unlike `NOVALIST_NO_SPLASH`, this option leaves the splash screen and startup extension checks enabled.
+**Steam builds** receive application updates through Steam. They hide the application-update controls in Help, About and Settings, including Settings search. Application update checks, downloads and installation through Novalist are disabled even when it is started outside Steam. Extension checks and updates remain available.
+
+For installations updated by an external tool or package manager, set `NOVALIST_DISABLE_SELF_UPDATE=1` in Novalist's environment before launching it. This blocks application update checks, downloads and installation, including manual requests. It hides **Help → Check for Updates**, the update button in **About**, and the application-update setting and its search result. Startup extension checks, extension settings and updates through the **Extensions** store remain available. In directly downloaded builds, unset the variable or set it to `0`, then restart Novalist to restore application updates. This cannot enable self-updates in Steam or Mac App Store builds. Unlike `NOVALIST_NO_SPLASH`, this option leaves the splash screen and startup extension checks enabled.
 
 Choose **Download update** to download in the background. **Continue writing** or Escape closes the review while the download continues. Once ready, choose **Install and restart** separately. Novalist finishes pending editor, manuscript, map, planning-board, book-matter and extension-settings saves, creates the normal close backup, starts the operating system's installer, then closes itself. Resolve save conflicts and close detached panes before installing. If a save or installer handoff fails, Novalist stays open and explains why. Platforms requiring manual installation open the downloaded file's folder instead.
 

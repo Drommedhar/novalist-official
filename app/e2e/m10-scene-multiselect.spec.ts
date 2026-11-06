@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { enterWriting } from './harness'
 
 /**
@@ -24,9 +24,9 @@ test('ctrl-click builds a selection and the bulk bar acts on it', async () => {
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(env.NOVALIST_SETTINGS_DIR, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'Bulk Novel', 'Book One'])

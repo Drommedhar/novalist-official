@@ -9,18 +9,6 @@ import { ManuscriptPropertyField } from './ManuscriptPropertyField'
 import { ChapterDateFields, useChapterDates } from './ChapterDateFields'
 import './shellDialogs.css'
 
-/** Chapter status enum values (mirrors Novalist.Core ChapterStatus) with the
- * display label keys used elsewhere in the app. */
-const CHAPTER_STATUSES: { value: string; labelKey: string }[] = [
-  { value: 'Outline', labelKey: 'dashboard.statusOutline' },
-  { value: 'FirstDraft', labelKey: 'dashboard.statusFirstDraft' },
-  { value: 'Revised', labelKey: 'dashboard.statusRevised' },
-  { value: 'Edited', labelKey: 'dashboard.statusEdited' },
-  { value: 'Final', labelKey: 'dashboard.statusFinal' }
-]
-
-const DEFAULT_STATUS = 'Outline'
-
 /** What a chapter is, as opposed to what it is called. */
 interface SectionType {
   key: string
@@ -48,7 +36,6 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
   const { t } = useTranslation()
   const isEdit = !!chapter
   const [title, setTitle] = useState(chapter?.title ?? '')
-  const [status, setStatus] = useState(chapter?.status ?? DEFAULT_STATUS)
   const [act, setAct] = useState(chapter?.act ?? '')
   const dates = useChapterDates(chapter)
   const [subtitle, setSubtitle] = useState(chapter?.subtitle ?? '')
@@ -82,7 +69,6 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
     try {
       if (isEdit && chapter) {
         if (name !== chapter.title) await store.renameChapter(chapter.guid, name)
-        if (status !== chapter.status) await store.setChapterStatus(chapter.guid, status)
         if (act.trim() !== chapter.act) await store.setChapterAct(chapter.guid, act.trim())
         if (dates.changed) store.applyState(await dates.save(chapter.guid))
         if (
@@ -105,11 +91,6 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
         const created = state.chapters.find((c) => !prev.has(c.guid))
         if (created) {
           if (dates.changed) state = await dates.save(created.guid)
-          if (status !== DEFAULT_STATUS)
-            state = await rpc.request<ProjectStateDto>('project/setChapterStatus', [
-              created.guid,
-              status
-            ])
           if (act.trim())
             state = await rpc.request<ProjectStateDto>('project/setChapterAct', [
               created.guid,
@@ -124,11 +105,11 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
     }
   }
 
-  return { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues, dates }
+  return { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues, dates }
 }
 
 export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.JSX.Element {
-  const { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues, dates } = useChapterDraft({ chapter, onClose })
+  const { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues, dates } = useChapterDraft({ chapter, onClose })
 
   return (
     <div
@@ -170,19 +151,6 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
             <option key={type.key} value={type.key}>
               {type.name}
               {type.numbered ? '' : ` (${t('dialog.sectionTypeUnnumbered')})`}
-            </option>
-          ))}
-        </select>
-
-        <label className="inspector-label">{t('dialog.status')}</label>
-        <select
-          className="dialog-input"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          {CHAPTER_STATUSES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {t(s.labelKey)}
             </option>
           ))}
         </select>

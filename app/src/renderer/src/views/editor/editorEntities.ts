@@ -66,11 +66,11 @@ function collectMentionNames(byText: Map<string, MatchedEntity[]>, index: Map<st
 }
 
 async function loadConlangNames(
-  names: NameMatch[], byText: Map<string, MatchedEntity[]>
+  names: NameMatch[], byText: Map<string, MatchedEntity[]>, signal?: AbortSignal
 ): Promise<Map<string, string> | null> {
   try {
     type Language = { id: string; name: string; words: { id: string; word: string }[] }
-    const languages = await rpc.request<Language[]>('conlang/list')
+    const languages = await rpc.request<Language[]>('conlang/list', undefined, { signal })
     const seen = new Set<string>()
     const words = new Map<string, string>()
     for (const language of languages ?? []) {
@@ -96,7 +96,8 @@ export async function pushEditorEntityNames(
   editor: EditorWindow,
   pane: string,
   entityIndex: RefObject<Map<string, EntityHit>>,
-  conlangWords: RefObject<Map<string, string>>
+  conlangWords: RefObject<Map<string, string>>,
+  signal?: AbortSignal
 ): Promise<void> {
   const index = new Map<string, EntityHit>()
   const byText = new Map<string, MatchedEntity[]>()
@@ -112,7 +113,7 @@ export async function pushEditorEntityNames(
   }
   const sceneId = editorPane(useProjectStore.getState(), pane).sceneId
   for (const type of ['character', 'location', 'item', 'lore']) {
-    const list = await rpc.request<EntityListRow[]>('entities/list', [type])
+    const list = await rpc.request<EntityListRow[]>('entities/list', [type], { signal })
     for (const entity of list) {
       const match = entity.match ?? null
       if (sceneId && match?.ignoredSceneIds.includes(sceneId)) continue
@@ -126,7 +127,8 @@ export async function pushEditorEntityNames(
     }
   }
   const { names, candidates } = collectMentionNames(byText, index)
-  const words = await loadConlangNames(names, byText)
+  const words = await loadConlangNames(names, byText, signal)
+  if (signal?.aborted) return
   if (words) conlangWords.current = words
   entityIndex.current = index
   editor.setEntityNames(JSON.stringify(names))

@@ -1,6 +1,7 @@
 import { rpc } from '../rpc/client'
 import { capturePendingWrites } from './pendingWrites'
 import { mirror, useProjectStore } from './projectStore'
+import type { ProjectState } from './projectTypes'
 import { stripHtml } from './projectPersistence'
 import { useManuscriptStore, applyExternalManuscriptScene } from './manuscriptStore'
 
@@ -14,10 +15,15 @@ export interface SceneDiskChange {
 
 let refreshing = false
 
+// Live shared documents reconcile through collaboration notifications. Their
+// saved files can lag the current CRDT and must never become a conflict base.
+const sharedWorkspace = (state: ProjectState): boolean =>
+  state.chapters.some(chapter => chapter.scenes.some(scene => !!scene.sharedProse))
+
 /** Recheck on application focus; never flush stale prose before reading disk. */
 export async function refreshExternalScenes(): Promise<void> {
   const initial = useProjectStore.getState()
-  if (refreshing || !initial.isLoaded || initial.workspaceBusy || initial.workspaceSuspended || initial.changingSceneStructure) return
+  if (refreshing || !initial.isLoaded || initial.workspaceBusy || initial.workspaceSuspended || initial.changingSceneStructure || sharedWorkspace(initial)) return
   refreshing = true
   try {
     capturePendingWrites()
@@ -34,7 +40,7 @@ export async function refreshExternalScenes(): Promise<void> {
     const current = useProjectStore.getState()
     if (current.workspaceEpoch !== before.workspaceEpoch || current.projectPath !== before.projectPath ||
         current.activeBookId !== before.activeBookId || current.activeDraftId !== before.activeDraftId ||
-        current.workspaceBusy || current.workspaceSuspended || current.changingSceneStructure) return
+        current.workspaceBusy || current.workspaceSuspended || current.changingSceneStructure || sharedWorkspace(current)) return
     capturePendingWrites()
     useProjectStore.setState(state => {
       // A completed save owns both its new base and its new outline count.

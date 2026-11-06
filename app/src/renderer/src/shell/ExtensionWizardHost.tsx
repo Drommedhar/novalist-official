@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
@@ -210,7 +211,8 @@ export function ExtensionWizardHost(): React.JSX.Element | null {
   return (
     <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay" role="presentation">
-      <div ref={cardRef} className="dialog-card wizard-host-card" role="dialog" aria-label={wizard.definition.displayName}>
+      <div ref={cardRef} className="dialog-card wizard-host-card" role="dialog" aria-label={wizard.definition.displayName}
+        onKeyDownCapture={(event) => dismissOnAndroidBack(event, cancel)}>
         <div className="wizard-host-title-row">
           <div className="dialog-title">{wizard.definition.displayName}</div>
           <span className="wizard-host-progress">

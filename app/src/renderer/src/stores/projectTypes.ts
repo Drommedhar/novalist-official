@@ -1,7 +1,11 @@
 import type { WorkspaceSnapshot } from '../../../shared/workspaceProtocol'
+import type { SharedSceneIdentity } from '../../../shared/sharedScene'
+import type { SharedEntityFields } from '../collaboration/FocusedField'
 
 export interface SceneDto {
   id: string
+  sharedFields?: SharedEntityFields
+  sharedProse?: SharedEntityFields
   title: string
   order: number
   wordCount: number
@@ -79,6 +83,8 @@ export interface SceneTabRef {
  * costs nothing.
  */
 export interface EditorPaneState {
+  shared?: SharedSceneIdentity | null
+  collaborationError?: boolean
   chapterGuid: string | null
   sceneId: string | null
   html: string | null
@@ -196,7 +202,6 @@ export interface ProjectState {
   renameScene(chapterGuid: string, sceneId: string, title: string): Promise<void>
   deleteChapter(chapterGuid: string): Promise<void>
   deleteScene(chapterGuid: string, sceneId: string): Promise<void>
-  setChapterStatus(chapterGuid: string, status: string): Promise<void>
   setChapterAct(chapterGuid: string, act: string): Promise<void>
   reorderChapter(chapterGuid: string, newOrder: number): Promise<void>
   reorderScene(chapterGuid: string, sceneId: string, newOrder: number): Promise<void>

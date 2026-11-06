@@ -81,7 +81,7 @@ export function SmartListEditor({
     setRules(rules.map((r, i) => (i === index ? { ...r, ...patch } : r)))
 
   const add = (): void =>
-    setRules([...rules, { field: fields[0]?.field ?? 'title', op: 'Contains', value: '' }])
+    setRules([...rules, { field: 'stage', op: 'Is', value: '' }])
 
   const submit = (): void => {
     if (name.trim().length === 0) return
@@ -143,7 +143,7 @@ export function SmartListEditor({
                   })
                 }}
               >
-                {fields.map((f) => (
+                {fields.filter((f) => f.field !== 'chapterStatus' || rule.field === 'chapterStatus').map((f) => (
                   <option key={f.field} value={f.field}>
                     {fieldLabel(f)}
                   </option>

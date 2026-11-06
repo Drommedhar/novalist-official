@@ -1,5 +1,6 @@
 import { computeStats, LEVEL_CLASS, type Level } from './textStatistics'
 import { useEffect, useMemo, useState } from 'react'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 import { useTranslation } from 'react-i18next'
 import { BarChart3, GitBranch, Headphones, Timer } from 'lucide-react'
 import { rpc } from '../rpc/client'
@@ -322,7 +323,8 @@ function StatusOverview({ state }: { state: ReturnType<typeof useStatusBar> }): 
         {overviewOpen && (
           <>
             <div className="status-overview-backdrop" onClick={() => setOverviewOpen(false)} />
-            <div className="status-overview-popover" role="dialog">
+            <div className="status-overview-popover" role="dialog"
+              onKeyDown={(event) => dismissOnAndroidBack(event, () => setOverviewOpen(false))}>
               <div className="status-overview-title">
                 {breakdown?.projectName ?? t('dashboard.projectOverview')}
               </div>

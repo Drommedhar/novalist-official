@@ -5,12 +5,13 @@ import {
   mkdirSync,
   mkdtempSync,
   readdirSync,
+  realpathSync,
   rmSync,
   writeFileSync
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { join, sep } from 'node:path'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 
 /**
  * Getting a book in, checked against files rather than fixtures.
@@ -61,7 +62,7 @@ async function launch(
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
   return { app, page }
 }
 
@@ -361,8 +362,10 @@ test('a sandboxed Mac stages a selected Scrivener project for the backend', asyn
     }), formats)
   expect(staged).toBeTruthy()
   expect(staged).not.toBe(binder)
-  expect(staged!.startsWith(join(workDir, 'electron-data', 'manuscript-import-staging'))).toBe(true)
   expect(existsSync(staged!)).toBe(true)
+  // macOS may canonicalize /var to /private/var in Electron's userData path.
+  const stagingRoot = realpathSync(join(workDir, 'electron-data', 'manuscript-import-staging'))
+  expect(realpathSync(staged!).startsWith(stagingRoot + sep)).toBe(true)
 
   // The child can still parse the staged manifest and sibling payload after the
   // PowerBox-only source has gone, proving it never depended on that process-local grant.

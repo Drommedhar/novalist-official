@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
+import { ScenePresenceBadge } from '../../collaboration/ScenePresenceBadge'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import { useTargetStore } from '../../stores/targetStore'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
-import { ManuscriptPropertyField } from '../../shell/ManuscriptPropertyField'
+import { SharedPropertyField } from '../../collaboration/SharedPropertyField'
+import { metadataBinding, SharedMetadataField } from '../../collaboration/SharedMetadataField'
+import { MetadataInput } from '../../collaboration/MetadataInput'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
+import { ScenePlanningText } from '../../collaboration/ScenePlanningText'
 import { LazyBlock } from '../../shell/LazyBlock'
 import { EAGER_SECTIONS } from './ManuscriptFrame'
 
@@ -21,11 +26,14 @@ export function Outliner(): React.JSX.Element {
   const targets = useTargetStore((s) => s.targets)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
   const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
+  const chapters = useProjectStore(s => s.chapters)
+  const revision = useSharedProjectRevision()
+  const binding = (sceneId: string, key: string) => metadataBinding(chapters.flatMap(chapter => chapter.scenes).find(scene => scene.id === sceneId), key)
 
   useEffect(() => {
     void useTargetStore.getState().load()
     void useManuscriptPropsStore.getState().load()
-  }, [])
+  }, [revision])
 
   // The writer picks which of their fields is worth a column; a dozen fields
   // is not a dozen columns anybody wants to read.
@@ -76,14 +84,15 @@ export function Outliner(): React.JSX.Element {
                   void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
                 }}
               >
-                {scene.title}
+                <span className="collaboration-scene-title">{scene.title}</span>
+                <ScenePresenceBadge sceneId={scene.sceneId} />
               </button>
-              <input
+              <ScenePlanningText sceneId={scene.sceneId} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={scene.synopsis ?? ''}><input
                 className="outliner-input"
                 defaultValue={scene.synopsis ?? ''}
                 onBlur={(e) => void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)}
-              />
-              <input
+              /></ScenePlanningText>
+              <ScenePlanningText sceneId={scene.sceneId} field="goal" label={t('sceneNotes.goal')} value={scene.goal ?? ''}><input
                 className="outliner-input"
                 defaultValue={scene.goal ?? ''}
                 placeholder={t('sceneNotes.goal')}
@@ -95,8 +104,8 @@ export function Outliner(): React.JSX.Element {
                     scene.outcome ?? ''
                   )
                 }
-              />
-              <input
+              /></ScenePlanningText>
+              <ScenePlanningText sceneId={scene.sceneId} field="outcome" label={t('sceneNotes.outcome')} value={scene.outcome ?? ''}><input
                 className="outliner-input"
                 defaultValue={scene.outcome ?? ''}
                 placeholder={t('sceneNotes.outcome')}
@@ -108,35 +117,38 @@ export function Outliner(): React.JSX.Element {
                     e.target.value
                   )
                 }
-              />
-              <input
+              /></ScenePlanningText>
+              <SharedMetadataField<string | null> binding={binding(scene.sceneId, 'analysisOverrides.pov')} value={scene.pov} onChange={() => {}}>{field => <MetadataInput<string | null>
                 className="outliner-input"
-                defaultValue={scene.pov ?? ''}
+                value={field.value}
+                editable={field.editable}
+                change={field.change}
+                format={value => value ?? ''}
+                parse={value => value || null}
                 placeholder={t('common.povWatermark')}
-                onBlur={(e) => void setPov(section.chapterGuid, scene.sceneId, e.target.value)}
-              />
+                onBlur={event => { if (!binding(scene.sceneId, 'analysisOverrides.pov')) void setPov(section.chapterGuid, scene.sceneId, event.target.value) }}
+              />}</SharedMetadataField>
               <span className="outliner-cell outliner-words">
                 {scene.wordCount.toLocaleString()}
               </span>
               {/* Editable in place: the Outliner is where a writer sets targets
                   across a run of scenes, and a dialog per scene would be worse. */}
-              <input
+              <SharedMetadataField<number | null> binding={binding(scene.sceneId, 'wordTarget')} value={targets.find(target => target.kind === 'scene' && target.id === scene.sceneId)?.target ?? null} onChange={() => {}}>{field => <MetadataInput<number | null>
                 className="outliner-input outliner-target"
                 type="number"
                 min={0}
-                defaultValue={
-                  targets.find((tg) => tg.kind === 'scene' && tg.id === scene.sceneId)?.target ?? ''
-                }
+                value={field.value}
+                editable={field.editable}
+                change={field.change}
+                format={value => value === null ? '' : String(value)}
+                parse={value => Number(value) || null}
                 placeholder={t('targets.none')}
-                onBlur={(e) =>
-                  void useTargetStore
-                    .getState()
-                    .setScene(section.chapterGuid, scene.sceneId, Number(e.target.value) || null)
-                }
-              />
+                onBlur={event => { if (!binding(scene.sceneId, 'wordTarget')) void useTargetStore.getState().setScene(section.chapterGuid, scene.sceneId, Number(event.target.value) || null) }}
+              />}</SharedMetadataField>
               {columns.map((property) => (
-                <ManuscriptPropertyField
+                <SharedPropertyField
                   key={property.key}
+                  binding={binding(scene.sceneId, `properties:${property.key}`)}
                   className="outliner-input"
                   property={property}
                   value={sceneValues[scene.sceneId]?.[property.key] ?? ''}

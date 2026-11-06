@@ -53,6 +53,8 @@ If a mode ends up holding more than ten views, its panel grows a filter box. Not
 The flagship example is the **AI Assistant** extension, which contributes three panels:
 
 - **AI Chat** — chat with your configured AI provider using the scene, chapter, outline or characters selected in its Context picker. An empty picker adds no project roster, and selected characters respect AI exclusions. Preview includes the system instructions, selected context, current message and retained conversation turns, with estimated input size and reserved output space. Older turns may be omitted to fit the budget. Clearing chat or opening another project retires the previous reply and conversation.
+
+  With the matching AI Assistant update, the picker also includes locations, items, lore and registered custom Codex types. **Add all** selects every option. Explicitly selected entries do not have to be mentioned in the current scene, and Codex selection works without an open scene. Entry and section AI exclusions still apply. Preview reports unavailable entries instead of silently treating the selection as included.
 - **Character Chat** — converse with one of your characters, grounded in their Codex entry.
 - **Story Analysis** — AI-driven analysis findings for your manuscript.
 

@@ -32,6 +32,7 @@ export class BackendRouter {
   private stdout = new RpcFrameDecoder()
   private sequence = 0
   private epoch = 0
+  private backendGeneration = 0
   private dialogOwner: number | null = null
   private recovering = false
   private readonly heldReplyIds = new Set<string>()
@@ -39,7 +40,8 @@ export class BackendRouter {
 
   constructor(
     private readonly write: (frame: Uint8Array) => void,
-    private readonly notification: (message: RpcMessage) => boolean = () => false
+    private readonly notification: (message: RpcMessage) => boolean = () => false,
+    private readonly desktopRequest?: (method: string, params: unknown) => Promise<unknown>
   ) {}
 
   attach(owner: number, port: BackendClient): void {
@@ -137,6 +139,10 @@ export class BackendRouter {
   receiveBackend(chunk: Uint8Array): void {
     for (const message of this.stdout.push(chunk)) {
       if (message.method) {
+        if (message.id !== undefined) {
+          void this.answerBackend(message.method, message.id, message.params)
+          continue
+        }
         if (this.recovering) continue
         if (this.notification(message)) continue
         const frame = encodeRpcFrame(message)
@@ -150,6 +156,20 @@ export class BackendRouter {
       if (typeof message.id === 'string' && this.heldReplyIds.has(message.id)) this.heldReplies.push(message)
       else this.deliverReply(message)
     }
+  }
+
+  private async answerBackend(method: string, id: RpcId, params: unknown): Promise<void> {
+    const generation = this.backendGeneration
+    let reply: RpcMessage = { jsonrpc: '2.0', id }
+    try {
+      if (!this.desktopRequest) reply.error = { code: -32601, message: 'This desktop operation is unavailable.' }
+      else reply.result = await this.desktopRequest(method, params) ?? null
+    } catch {
+      reply = { ...reply, error: { code: -32000, message: 'The desktop operation could not be completed.' } }
+    }
+    if (generation !== this.backendGeneration) return
+    try { this.write(encodeRpcFrame(reply)) }
+    catch { this.restart() }
   }
 
   private deliverReply(message: RpcMessage): void {
@@ -169,6 +189,7 @@ export class BackendRouter {
   }
 
   restart(notifyClients = true): void {
+    this.backendGeneration++
     this.stdout = new RpcFrameDecoder()
     this.epoch = 0
     for (const pending of this.pending.values()) pending.reject?.(new Error('Backend restarted.'))
@@ -208,6 +229,7 @@ export class BackendRouter {
   }
 
   dispose(): void {
+    this.backendGeneration++
     for (const pending of this.pending.values()) pending.reject?.(new Error('Backend closed.'))
     this.pending.clear()
     for (const client of this.clients.values()) client.port.close()

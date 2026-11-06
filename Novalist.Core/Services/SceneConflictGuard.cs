@@ -50,7 +50,19 @@ public sealed class SceneConflictGuard
     /// An absent file hashes as empty, which is what a brand-new scene reads as,
     /// so creating one is never mistaken for a conflict.</summary>
     public async Task<string> DiskHashAsync(ChapterData chapter, SceneData scene)
-        => ContentHasher.Hash(await _projectService.ReadSceneContentAsync(chapter, scene));
+        => ContentHasher.Hash(await ReadCurrentSceneAsync(chapter, scene));
+
+    private async Task<string> ReadCurrentSceneAsync(ChapterData chapter, SceneData scene)
+    {
+        await RefreshSceneMetadataAsync(chapter, scene);
+        return await _projectService.ReadSceneContentAsync(chapter, scene);
+    }
+
+    private async Task RefreshSceneMetadataAsync(ChapterData chapter, SceneData scene)
+    {
+        if (ProjectFiles.For(_projectService) is IFileMetadataCache cache)
+            await cache.RefreshMetadataAsync(_projectService.GetSceneFilePath(chapter, scene));
+    }
 
     /// <summary>
     /// Saves a scene unless the file changed under it.
@@ -65,7 +77,7 @@ public sealed class SceneConflictGuard
     {
         if (!string.IsNullOrEmpty(expectedHash))
         {
-            var diskHtml = await _projectService.ReadSceneContentAsync(chapter, scene);
+            var diskHtml = await ReadCurrentSceneAsync(chapter, scene);
             var diskHash = ContentHasher.Hash(diskHtml);
             if (!string.Equals(diskHash, expectedHash, StringComparison.Ordinal))
             {
@@ -88,6 +100,7 @@ public sealed class SceneConflictGuard
     public async Task<string> ResolveAsync(
         ChapterData chapter, SceneData scene, string mergedHtml, string? originalMineHtml = null)
     {
+        await RefreshSceneMetadataAsync(chapter, scene);
         if (_snapshots != null)
         {
             // On-disk side first: taking it means reading the file, and the

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Trash2 } from 'lucide-react'
 import { DEFAULT_LAYOUT, matchingLayout, useShellStore } from '../stores/shellStore'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 /**
  * The arrangements of panes a writer named, and the way back to one pane.
@@ -23,7 +24,8 @@ export function PaneLayoutsDialog({ onClose }: { onClose(): void }): React.JSX.E
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog-card" role="dialog" aria-label={t('panes.layouts')}>
+      <div className="dialog-card" role="dialog" aria-label={t('panes.layouts')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}>
         <h2 className="dialog-title">{t('panes.layouts')}</h2>
 
         <div className="layouts-save">

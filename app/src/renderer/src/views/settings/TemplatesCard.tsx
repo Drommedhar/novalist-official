@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
 import type { CustomTypeDefinition } from '../codex/CustomTypeManager'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 interface TemplateSummary {
   id: string
@@ -217,7 +218,8 @@ export function TemplatesCard(): React.JSX.Element {
 
       <MotionPresence>{editor && (
         <div className="dialog-overlay">
-          <div className="dialog-card type-manager-card" role="dialog" aria-label={editor.record.name}>
+          <div className="dialog-card type-manager-card" role="dialog" aria-label={editor.record.name}
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setEditor(null))}>
             <div className="dialog-title">{editor.record.name}</div>
 
             <label className="inspector-label">{t('template.templateName')}</label>

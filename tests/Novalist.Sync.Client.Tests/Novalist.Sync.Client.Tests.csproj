@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../Novalist.Sync.Client/Novalist.Sync.Client.csproj" />
+    <ProjectReference Include="../../Novalist.Core/Novalist.Core.csproj" />
+  </ItemGroup>
+</Project>

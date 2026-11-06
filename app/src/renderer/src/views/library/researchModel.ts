@@ -7,6 +7,10 @@ import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import { useResearchDrafts } from './useResearchDrafts'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
+import type { FieldBinding, SharedEntityFields } from '../../collaboration/FocusedField'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../../collaboration/metadataCommands'
 
 /** Reserved tag marking a quick-captured note that has not been filed yet.
  *  Mirrors ResearchItem.InboxTag on the backend. */
@@ -17,6 +21,8 @@ export interface ResearchItemDto {
   title: string
   type: string
   content: string
+  sharedProse?: FieldBinding
+  sharedFields?: SharedEntityFields
   tags: string[]
   fileSize: string
   modified: string
@@ -44,6 +50,7 @@ function useResearchData() {
   const clearPendingResearch = useShellStore((s) => s.clearPendingResearch)
   const folderImportOpen = useShellStore((s) => s.dialog === 'importFolder')
   const importRevision = useHostBridgeStore((s) => s.importRevision)
+  const sharedRevision = useSharedProjectRevision()
   const drafts = useResearchDrafts()
   const { items, setItems } = drafts
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -60,29 +67,15 @@ function useResearchData() {
   // Filing an inbox note into the Codex: which dialog is open, if any.
   const [filing, setFiling] = useState<'create' | 'append' | null>(null)
 
-  return { ...drafts, t, pendingResearchId, clearPendingResearch, folderImportOpen, importRevision, items, setItems, selectedId, setSelectedId, search, setSearch, researchTab, setResearchTab, vaultOpen, setVaultOpen, newTag, setNewTag, confirmDelete, setConfirmDelete, inboxOnly, setInboxOnly, dragging, setDragging, fetchingTitle, setFetchingTitle, allEntities, setAllEntities, filing, setFiling }
+  return { ...drafts, t, pendingResearchId, clearPendingResearch, folderImportOpen, importRevision, sharedRevision, items, setItems, selectedId, setSelectedId, search, setSearch, researchTab, setResearchTab, vaultOpen, setVaultOpen, newTag, setNewTag, confirmDelete, setConfirmDelete, inboxOnly, setInboxOnly, dragging, setDragging, fetchingTitle, setFetchingTitle, allEntities, setAllEntities, filing, setFiling }
 }
 
 function useResearchLoading(context: ReturnType<typeof useResearchData>) {
-  const { folderImportOpen, vaultOpen, setItems, importRevision, pendingResearchId, items, setSelectedId, setResearchTab, setSearch, clearPendingResearch, selectedId, setAllEntities, allEntities } = context
+  const { folderImportOpen, vaultOpen, refresh, importRevision, sharedRevision, pendingResearchId, items, setSelectedId, setResearchTab, setSearch, clearPendingResearch, selectedId, setAllEntities, allEntities } = context
   useEffect(() => {
     if (folderImportOpen || vaultOpen) return
-    let cancelled = false
-    void rpc
-      .request<ResearchItemDto[]>('research/list')
-      .then((updated) => {
-        if (!cancelled)
-          setItems((previous) => {
-            // API imports add entries; keep local edits to existing notes while merging new ones.
-            const existing = new Map(previous.map((item) => [item.id, item]))
-            return updated.map((item) => existing.get(item.id) ?? item)
-          })
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [folderImportOpen, vaultOpen, importRevision, setItems])
+    void refresh()
+  }, [folderImportOpen, vaultOpen, importRevision, sharedRevision, refresh])
 
   // Quick-open (and other deep links) can ask for a specific item; select it once
   // the list has loaded, then clear the request so it fires only once.
@@ -125,7 +118,7 @@ function useResearchLoading(context: ReturnType<typeof useResearchData>) {
     return () => {
       cancelled = true
     }
-  }, [folderImportOpen, vaultOpen, importRevision, setAllEntities])
+  }, [folderImportOpen, vaultOpen, importRevision, sharedRevision, setAllEntities])
 
   const entityNames = new Map(allEntities.map((e) => [e.id, e.name]))
 
@@ -249,6 +242,8 @@ function researchMetadata(context: ReturnType<typeof researchAttachments>) {
     try {
       const title = await rpc.request<string | null>('research/fetchLinkTitle', [selected.content])
       if (title) {
+        const binding = metadataBinding(selected, 'title')
+        if (binding) { await writeSharedMetadata(binding, title); return }
         patchSelected({ title })
         await save({ ...selected, title })
       }
@@ -307,6 +302,11 @@ function researchFiling(context: ReturnType<typeof researchMetadata>) {
   /** Clears the inbox flag: the note has been dealt with and becomes an ordinary
    *  research item. Filing never deletes anything — you keep the original. */
   const markFiled = async (item: ResearchItemDto): Promise<void> => {
+    const binding = metadataBinding(item, 'tags')
+    if (binding) {
+      await writeSharedMetadata<string[]>(binding, tags => tags.filter(tag => tag.toLowerCase() !== INBOX_TAG))
+      return
+    }
     const next = { ...item, tags: item.tags.filter((tag) => tag.toLowerCase() !== INBOX_TAG) }
     patchSelected({ tags: next.tags })
     await save(next)

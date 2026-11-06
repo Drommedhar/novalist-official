@@ -2,16 +2,17 @@ import { create } from 'zustand'
 import { parseSettingsDestination, setSettingsDestination } from '../views/settings/settingsNavigation'
 import { isSettingsSectionKey } from '../views/settings/settingsRegistry'
 import { HOME_VIEW, MODE_VIEWS, modeOf, type Mode } from '../shell/modes'
-import { type MainView, type InspectorTab, type ShellState } from './shellTypes'
-import { newLeaf, findPane, paneLeaves, splitPane, closePane, setPaneViewIn, resize, reidentify, persistLayouts, storedLayouts, initialPanes } from './shellPanes'
+import { type MainView, type PaneView, type InspectorTab, type ShellState } from './shellTypes'
+import { newLeaf, findPane, paneLeaves, splitPane, closePane, canClosePane, setPaneViewIn, resize, reidentify, persistLayouts, storedLayouts, initialPanes } from './shellPanes'
 import { BINDER_MIN, BINDER_MAX, INSPECTOR_MIN, INSPECTOR_MAX, shellCapacityForWidth, clamp, savePanelSize, initialPanelSize, storedPanels, screenW } from './shellPanels'
 
 function withSavedPanes(ids: string[], proceed: () => void): void {
   void (async () => {
-    const [{ useProjectStore }, { capturePendingWrites }] = await Promise.all([
+    const [{ useProjectStore }, { capturePendingWrites, flushPendingWrites }] = await Promise.all([
       import('./projectStore'), import('./pendingWrites')
     ])
     capturePendingWrites()
+    await flushPendingWrites()
     for (const id of ids) await useProjectStore.getState().flushPane(id)
     const state = useProjectStore.getState()
     if (state.sceneConflict || ids.some((id) => state.editors[id]?.isDirty)) return
@@ -31,8 +32,9 @@ function blurFocusPanel(): void {
 /** The active pane's view and the navigation beside it must change together. */
 function viewState(
   state: Pick<ShellState, 'mode'>,
-  mainView: MainView
-): Pick<ShellState, 'mainView' | 'mode'> {
+  mainView: PaneView
+): Partial<Pick<ShellState, 'mainView' | 'mode'>> {
+  if (mainView === 'sceneNotes') return {}
   const mode = modeOf(mainView)
   if (mode) lastInMode[mode] = mainView
   return { mainView, mode: mode ?? state.mode }
@@ -59,7 +61,7 @@ function showView(
     // lands the writer in the workspace that view belongs to rather than
     // leaving the rail pointing somewhere they no longer are. Dashboard,
     // Settings and About belong to no mode and leave the last one standing.
-    ...viewState(state, mainView),
+    mainView, mode: state.mode, ...viewState(state, mainView),
     extView: null,
     panes: setPaneViewIn(state.panes, state.activePaneId, mainView),
     binderOverlayOpen: false,
@@ -216,7 +218,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
   setActivePane: (activePaneId) =>
     set((s) => {
       const pane = findPane(s.panes, activePaneId)
-      return pane && pane.kind === 'leaf'
+      return pane && pane.kind === 'leaf' && pane.view !== 'sceneNotes'
         ? { activePaneId, ...viewState(s, pane.view) }
         : {}
     }),
@@ -255,13 +257,13 @@ export const useShellStore = create<ShellState>((set, get) => ({
     set((s) => {
       // The last pane stays: a content area with nothing in it is not a layout,
       // it is a broken window.
-      if (paneLeaves(s.panes).length < 2) return {}
+      if (!canClosePane(s.panes, id)) return {}
       const root = closePane(s.panes, id)
       if (!root) return {}
       // Closing the pane you were in moves you somewhere real; closing another
       // one leaves you where you were.
       if (id !== s.activePaneId && findPane(root, s.activePaneId)) return { panes: root }
-      const first = paneLeaves(root)[0]
+      const first = paneLeaves(root).find((pane) => pane.view !== 'sceneNotes') ?? paneLeaves(root)[0]
       return { panes: root, activePaneId: first.id, ...viewState(s, first.view) }
     })),
 
@@ -295,7 +297,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
       const layout = s.layouts.find((l) => l.name === name)
       if (!layout) return {}
       const root = reidentify(layout.root)
-      const first = paneLeaves(root)[0]
+      const first = paneLeaves(root).find((pane) => pane.view !== 'sceneNotes') ?? paneLeaves(root)[0]
       return { panes: root, activePaneId: first.id, ...viewState(s, first.view) }
     })),
 
@@ -405,9 +407,14 @@ export const useShellStore = create<ShellState>((set, get) => ({
   clearPendingSuggestion: () => set({ pendingSuggestion: null }),
   toggleNotesDock: () => {
     blurFocusPanel()
-    set((s) => s.focusMode && s.mainView === 'write'
-      ? { focusPanel: s.focusPanel === 'notes' ? null : 'notes', focusPanelTransient: false }
-      : { notesDockVisible: !s.notesDockVisible })
+    if (get().focusMode) {
+      void import('../shell/sceneNotesDocking').then(({ useNotesDocking, floatSceneNotes }) => {
+        if (useNotesDocking.getState().state.docked) void floatSceneNotes()
+        else void window.novalist.toggleSceneNotes?.()
+      })
+      return
+    }
+    void window.novalist.toggleSceneNotes?.()
   },
   setBackendVersion: (backendVersion) => set({ backendVersion }),
   setShellMetrics: (rawWidth) =>
@@ -431,6 +438,6 @@ export const useShellStore = create<ShellState>((set, get) => ({
     })
 }))
 
-export type { MainView, ShellDialog, BinderTab, ActiveExtView, InspectorTab, MobileTab, PaneNode, SavedLayout, ShellCapacity, MobileLayout, UnsavedGuard, PendingLeave } from './shellTypes'
+export type { MainView, PaneView, DockEdge, ShellDialog, BinderTab, ActiveExtView, InspectorTab, MobileTab, PaneNode, SavedLayout, ShellCapacity, MobileLayout, UnsavedGuard, PendingLeave } from './shellTypes'
 export { newLeaf, sameArrangement, DEFAULT_LAYOUT, matchingLayout, findPane, paneLeaves, anyPaneShows, splitPane, closePane, setPaneViewIn } from './shellPanes'
 export { BINDER_MIN, BINDER_MAX, INSPECTOR_MIN, INSPECTOR_MAX, NOTES_DOCK_MIN, NOTES_DOCK_MAX, shellCapacityForWidth, panelWidthForShell, savePanelSize, NOTES_DOCK_DEFAULT } from './shellPanels'

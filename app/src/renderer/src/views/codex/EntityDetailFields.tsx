@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { SharedFieldControl } from './SharedFieldControl'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
 import { EntityReferenceList } from './EntityReferenceList'
+import { useEntityFieldSuggestions } from './useEntityFieldSuggestions'
+import { SharedEntityReferenceList } from './SharedEntityReferenceList'
 
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
 const refTargetType = (field: CustomTypeDefinition['defaultFields'][number]): string =>
@@ -115,19 +120,8 @@ export function EntityDetailFields({
   updateField: (key: string, value: string) => Promise<void>
 }): React.JSX.Element {
   const { t } = useTranslation()
-  const [locationNames, setLocationNames] = useState<string[]>([])
-  const [refNames, setRefNames] = useState<Record<string, string[]>>({})
+  const suggestions = useEntityFieldSuggestions(entityType, record.id)
   const refListId = useId()
-  // Every group name any entry in the project uses, whatever its type - a
-  // faction spans them, which is the whole reason a group is worth having.
-  const [groupNames, setGroupNames] = useState<string[]>([])
-
-  useEffect(() => {
-    void rpc
-      .request<string[]>('entities/groups')
-      .then(setGroupNames)
-      .catch(() => setGroupNames([]))
-  }, [entityType, record])
 
   const [sheet, setSheet] = useState<{ hidden: string[]; order: string[] }>({
     hidden: [],
@@ -146,41 +140,6 @@ export function EntityDetailFields({
   const custom = !['character', 'location', 'item', 'lore'].includes(entityType)
   const customFields = record.fields as Record<string, string> | undefined
 
-  const needsParent = entityType === 'location'
-  useEffect(() => {
-    if (!needsParent) return
-    void rpc
-      .request<{ name: string }[]>('entities/list', ['location'])
-      .then((list) => setLocationNames(list.map((l) => l.name)))
-      .catch(() => setLocationNames([]))
-  }, [needsParent])
-
-  // Each field's target is stored in enumOptions, including custom type keys.
-  useEffect(() => {
-    let cancelled = false
-    setRefNames({})
-    const types = custom
-      ? [
-          ...new Set(
-            (customDef?.defaultFields ?? [])
-              .filter((f) => f.type === 'EntityRef')
-              .map(refTargetType)
-          )
-        ]
-      : []
-    void Promise.all(
-      types.map(async (type) => {
-        const list = await rpc.request<{ name: string }[]>('entities/list', [type]).catch(() => [])
-        return [type, [...new Set(list.map((e) => e.name))].sort()] as const
-      })
-    ).then((lists) => {
-      if (!cancelled) setRefNames(Object.fromEntries(lists))
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [custom, customDef, record.id])
-
   const readValue = (key: string, isCustom: boolean): string => {
     if (key === 'name') return String(record.name ?? '')
     if (isCustom) return String(customFields?.[key] ?? '')
@@ -196,7 +155,11 @@ export function EntityDetailFields({
     refType?: string
   ): React.JSX.Element => {
     const value = readValue(key, isCustom)
+    const shared = record.sharedFields as SharedEntityFields | undefined
+    const itemId = shared?.fields[key]
     if (control === 'refList') {
+      if (shared && itemId) return <SharedEntityReferenceList key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+        label={label ?? key} targetType={refType ?? 'character'} value={value} disabled={record.locked === true} />
       return <EntityReferenceList key={`${record.id}:${key}`} label={label ?? key}
         targetType={refType ?? 'character'} value={value} onChange={(next) => updateField(key, next)} />
     }
@@ -204,14 +167,19 @@ export function EntityDetailFields({
       if (v !== value) void updateField(key, v)
     }
     if (control === 'textarea') {
+      const prose = proseBinding(record, key)
+      if (prose) return <MarkdownEditor key={prose.itemId} value={value} ariaLabel={label} shared={prose} onChange={() => {}} />
       return <MarkdownField key={key} value={value} ariaLabel={label} onCommit={commit} />
     }
     if (control === 'plainText') {
+      if (shared && itemId) return <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+        value={value} label={label} multiline disabled={record.locked === true} />
       return <textarea className="dialog-input codex-field-input" aria-label={label} rows={5}
         key={`${record.id}:${key}:${value}`} defaultValue={value} onBlur={(event) => commit(event.target.value)} />
     }
     if (control === 'category' || (options && options.length > 0)) {
       const opts = options ?? LORE_CATEGORIES
+      if (shared && itemId) return <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }} value={value} label={label} options={opts} disabled={record.locked === true} />
       return (
         <select
           className="dialog-input codex-field-input"
@@ -228,6 +196,7 @@ export function EntityDetailFields({
       )
     }
     const inputType = control === 'date' ? 'date' : 'text'
+    const suggestionType = control === 'group' ? null : control === 'parent' ? 'location' : refType ?? 'character'
     const listId =
       control === 'parent'
         ? 'codex-location-names'
@@ -238,25 +207,29 @@ export function EntityDetailFields({
             : undefined
     return (
       <>
-        <input
+        {shared && itemId ? <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+          value={value} label={label} type={inputType} list={listId} disabled={record.locked === true}
+          onFocus={listId ? () => suggestions.load(suggestionType) : undefined} /> : <input
           className="outliner-input codex-field-input"
           type={inputType}
           aria-label={label}
           list={listId}
           defaultValue={value}
           key={`${key}:${value}`}
+          onFocus={listId ? () => suggestions.load(suggestionType) : undefined}
+          title={listId ? suggestions.errors[suggestionType ?? ''] : undefined}
           onBlur={(e) => commit(e.target.value)}
-        />
+        />}
         {control === 'parent' && (
           <datalist id="codex-location-names">
-            {locationNames.map((n) => (
+            {(suggestions.names.location ?? []).map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
         )}
         {control === 'ref' && (
           <datalist id={listId}>
-            {(refNames[refType ?? 'character'] ?? []).map((n) => (
+            {(suggestions.names[refType ?? 'character'] ?? []).map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
@@ -265,7 +238,7 @@ export function EntityDetailFields({
             second time and the group actually groups. */}
         {control === 'group' && (
           <datalist id="codex-group-names">
-            {groupNames.map((n) => (
+            {(suggestions.names[''] ?? []).map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>

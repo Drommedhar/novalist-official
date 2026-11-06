@@ -27,11 +27,12 @@ public partial class ExportService
         }
 
         var content = await CompileCodexAsync(options, _entityService);
+        var materialized = await MaterializeCodexImagesAsync(content, options);
 
         string? ResolveImage(string relativePath)
         {
             if (string.IsNullOrWhiteSpace(relativePath)) return null;
-            var abs = _entityService.GetImageFullPath(relativePath);
+            var abs = materialized.GetValueOrDefault(relativePath);
             return !string.IsNullOrWhiteSpace(abs) && File.Exists(abs) ? abs : null;
         }
 

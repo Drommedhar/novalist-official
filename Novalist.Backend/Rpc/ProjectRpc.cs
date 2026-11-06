@@ -19,7 +19,7 @@ public sealed class ProjectRpc
     public ProjectStateDto GetState() => _workspace.BuildState();
 
     [JsonRpcMethod("project/close")]
-    public ProjectStateDto Close() => _workspace.CloseProject();
+    public Task<ProjectStateDto> CloseAsync() => _workspace.CloseProjectAsync();
 
     [JsonRpcMethod("project/recent")]
     public Task<RecentProjectDto[]> GetRecentAsync(bool includeLibraryDetails = true) =>
@@ -37,6 +37,9 @@ public sealed class ProjectRpc
     public async Task<ProjectStateDto> CreateAsync(
         string parentDirectory, string projectName, string firstBookName, string? templateId = null)
     {
+#if NOVALIST_COLLABORATION
+        await _workspace.DetachSharedScenesAsync();
+#endif
         await _workspace.Projects.CreateProjectAsync(parentDirectory, projectName, firstBookName);
         if (!string.IsNullOrWhiteSpace(templateId)
             && ProjectTemplates.GetById(templateId) is { } template)
@@ -86,12 +89,18 @@ public sealed class ProjectRpc
     /// </param>
     [JsonRpcMethod("project/createScene")]
     public async Task<ProjectStateDto> CreateSceneAsync(
-        string chapterGuid, string title, string? templateId = null)
+        string chapterGuid, string title, string? templateId = null, string? initialPov = null)
     {
         var template = string.IsNullOrWhiteSpace(templateId)
             ? null
             : _workspace.Projects.ActiveBook?.SceneTemplates.FirstOrDefault(t => t.Id == templateId);
-        await _workspace.Projects.CreateSceneAsync(chapterGuid, title, template: template);
+        var scene = await _workspace.Projects.CreateSceneAsync(chapterGuid, title, template: template);
+        if (!string.IsNullOrWhiteSpace(initialPov))
+        {
+            scene.AnalysisOverrides ??= new();
+            scene.AnalysisOverrides.Pov = initialPov.Trim();
+            await _workspace.Projects.SaveScenesAsync();
+        }
         return _workspace.BuildState();
     }
 

@@ -76,6 +76,43 @@ public class SceneConflictGuardTests : IDisposable
 
     // ── The check ──
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReplacedIdentityWithUnchangedStats_RefreshesTheBinderAndRejectsStaleAccess(bool save)
+    {
+        var (chapter, scene) = await SceneAsync();
+        const string html = "<p>Original prose.</p>";
+        await WriteOnDiskAsync(chapter, scene, html);
+        var root = _projects.ProjectRoot!;
+        await _projects.LoadProjectAsync(root);
+        var path = _projects.GetSceneFilePath(chapter, scene);
+        var modified = File.GetLastWriteTimeUtc(path);
+        var replacementId = Guid.NewGuid().ToString();
+        var replacement = FileFrontMatter.Build(replacementId) + html;
+        Assert.Equal(new FileInfo(path).Length, System.Text.Encoding.UTF8.GetByteCount(replacement));
+        await File.WriteAllTextAsync(path, replacement);
+        File.SetLastWriteTimeUtc(path, modified);
+        await _projects.LoadProjectAsync(root);
+        Assert.Equal(scene.Id, Assert.Single(_projects.GetScenesForChapter(chapter.Guid)).Id);
+        var reconciled = false;
+        _projects.DraftReconciled += (_, _) => reconciled = true;
+
+        await Assert.ThrowsAsync<IOException>(async () =>
+        {
+            if (save) await Guard().SaveAsync(chapter, scene, "<p>Unsaved changes.</p>", ContentHasher.Hash(html));
+            else await _projects.ReadSceneContentAsync(chapter, scene);
+        });
+
+        Assert.True(reconciled);
+        Assert.Equal(replacement, await File.ReadAllTextAsync(path));
+        var refreshed = Assert.Single(_projects.GetScenesForChapter(chapter.Guid));
+        Assert.Equal(replacementId, refreshed.Id);
+        Assert.Equal(html, await _projects.ReadSceneContentAsync(chapter, refreshed));
+        await _projects.LoadProjectAsync(root);
+        Assert.Equal(replacementId, Assert.Single(_projects.GetScenesForChapter(chapter.Guid)).Id);
+    }
+
     [Fact]
     public async Task ASaveThatKnowsWhatItIsOverwritingGoesThrough()
     {

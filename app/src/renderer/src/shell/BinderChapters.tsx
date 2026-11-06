@@ -6,7 +6,7 @@ import type { BinderState } from './binderState'
 import { MotionPresence } from './MotionPresence'
 
 export function BinderChapters({ state }: { state: BinderState }): React.JSX.Element {
-  const { t, binderTab, isMobile, setAddSceneChapter, collapsed, setCollapsed, setDrag, setMenu, chapters, onChapterDrop, scenesOf, cycleStatus } = state
+  const { t, binderTab, isMobile, setAddSceneChapter, collapsed, setCollapsed, setDrag, setMenu, chapters, onChapterDrop, scenesOf } = state
   return <>
         {binderTab === 'chapters' &&
           chapters.map((chapter, index) => (
@@ -38,12 +38,6 @@ export function BinderChapters({ state }: { state: BinderState }): React.JSX.Ele
                   className={`binder-chevron${collapsed[chapter.guid] ? '' : ' open'}`}
                 />
               </button>
-              <button
-                className="binder-status-dot"
-                data-status={chapter.status}
-                title={t('explorer.cycleStatusTooltip')}
-                onClick={() => cycleStatus(chapter.guid, chapter.status)}
-              />
               <span className="binder-chapter-title" title={chapter.title}>{chapter.title}</span>
               {isMobile && (
                 <>

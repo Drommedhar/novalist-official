@@ -51,7 +51,7 @@ Appearances are ordered chronologically by story date, with undated scenes last,
 
 **Appearances cover the book you currently have open**, not the whole project. In a multi-book project the heading says so explicitly ("Appearances in *Book Two*") — so a World Bible character shared across a trilogy shows one book's worth of history at a time. Switch books to see the rest.
 
-Synopses come from the scene's Synopsis field, which you can write yourself in the scene-notes dock or have generated for you if you run the AI Assistant extension (see [Extensions](24-extensions.md)). The richer your synopses, the more readable the Appearances timeline.
+Synopses come from the scene's Synopsis field, which you can write yourself in the inspector’s Properties tab or have generated for you if you run the AI Assistant extension (see [Extensions](24-extensions.md)). The richer your synopses, the more readable the Appearances timeline.
 
 ## AI summary
 

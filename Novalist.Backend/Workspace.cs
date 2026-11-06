@@ -27,17 +27,22 @@ public sealed partial class Workspace : IDisposable
     private readonly IStoredPathResolver? _storedPaths;
 
     public Workspace(string? settingsDirectory = null, IStoredPathResolver? storedPaths = null,
-        IFileService? fileService = null)
+        IFileService? fileService = null,
+        IArchiveService? archiveService = null)
     {
         SettingsDirectory = settingsDirectory;
         _storedPaths = storedPaths;
+#if NOVALIST_COLLABORATION
+        FileService = new CollaborationFileService(fileService ?? new FileService(), this);
+#else
         FileService = fileService ?? new FileService();
+#endif
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
         // Beside the settings rather than inside a project: a thought that
         // arrives before the right project is open still has somewhere to go.
         Scratchpad = new ScratchpadService(settingsDirectory);
-        ArchiveService = new ArchiveService();
+        ArchiveService = archiveService ?? new ArchiveService();
         WordHistory = new WordHistoryService(FileService, Projects);
         UserAssets = new Appearance.UserAssetsService(settingsDirectory);
         UserAssets.EnsureDirectories();
@@ -83,7 +88,7 @@ public sealed partial class Workspace : IDisposable
     public ScratchpadService Scratchpad { get; }
 
     /// <summary>ZIP creation and extraction, used by whole-project backups.</summary>
-    public ArchiveService ArchiveService { get; }
+    public IArchiveService ArchiveService { get; }
     public WordHistoryService WordHistory { get; }
 
     /// <summary>User-supplied themes, interface locales, and analysis lexicons
@@ -105,6 +110,9 @@ public sealed partial class Workspace : IDisposable
 
     public void Dispose()
     {
+#if NOVALIST_COLLABORATION
+        RequireNoSharedSession();
+#endif
         Disposing?.Invoke();
         Disposing = null;
         _extensions?.ShutdownAll();
@@ -114,9 +122,11 @@ public sealed partial class Workspace : IDisposable
 
     public async Task<ProjectStateDto> OpenProjectAsync(string projectDirectory, string? bookId = null)
     {
+#if NOVALIST_COLLABORATION
+        await DetachSharedScenesAsync();
+#endif
         await Settings.LoadAsync();
         var metadata = await Projects.LoadProjectAsync(projectDirectory, bookId);
-        await Projects.ReconcileActiveDraftAsync();
         Settings.SetActiveOverrides(Projects.ProjectSettings.Overrides);
         // Record the portrait cover's absolute path so the welcome screen can
         // render each recent project's cover without opening it.
@@ -143,6 +153,9 @@ public sealed partial class Workspace : IDisposable
     /// </remarks>
     public ProjectStateDto CloseProject()
     {
+#if NOVALIST_COLLABORATION
+        RequireNoSharedSession();
+#endif
         Projects.CloseProject();
         Settings.SetActiveOverrides(null);
         // The rendered reading goes with the project. Clips are kept between
@@ -152,6 +165,16 @@ public sealed partial class Workspace : IDisposable
         // should not outlive the project being open.
         new NarrationClipCache(SettingsDirectory).Clear();
         return BuildState();
+    }
+
+    public async Task<ProjectStateDto> CloseProjectAsync()
+    {
+#if NOVALIST_COLLABORATION
+        await DetachSharedScenesAsync();
+#else
+        await Task.CompletedTask;
+#endif
+        return CloseProject();
     }
 
     public ChapterData ResolveChapter(string chapterGuid)
@@ -171,6 +194,9 @@ public sealed partial class Workspace : IDisposable
 
     public async Task<int> WriteSceneAsync(string chapterGuid, string sceneId, string html, string plainText)
     {
+#if NOVALIST_COLLABORATION
+        RequireUnsharedScene(chapterGuid, sceneId);
+#endif
         var (chapter, scene) = ResolveScene(chapterGuid, sceneId);
         await Projects.WriteSceneContentAsync(chapter, scene, html);
         await AfterSceneWriteAsync(chapter, scene, html, plainText);
@@ -191,6 +217,9 @@ public sealed partial class Workspace : IDisposable
     public async Task<(SceneSaveOutcome Outcome, int WordCount)> WriteSceneCheckedAsync(
         string chapterGuid, string sceneId, string html, string plainText, string? expectedHash)
     {
+#if NOVALIST_COLLABORATION
+        RequireUnsharedScene(chapterGuid, sceneId);
+#endif
         var (chapter, scene) = ResolveScene(chapterGuid, sceneId);
         var outcome = await SceneConflicts.SaveAsync(chapter, scene, html, expectedHash);
         // A refused save must not touch the word history or the manifest: nothing
@@ -204,10 +233,12 @@ public sealed partial class Workspace : IDisposable
     /// <summary>The bookkeeping every successful scene write does: word count,
     /// history, manifest, and the extension event.</summary>
     private async Task AfterSceneWriteAsync(
-        ChapterData chapter, SceneData scene, string html, string plainText)
+        ChapterData chapter, SceneData scene, string html, string plainText, bool recordHistory = true)
     {
         scene.WordCount = CountWords(plainText.Length > 0 ? plainText : StripHtml(html));
-        await WordHistory.RecordSaveAsync(
+        if (recordHistory) await WordHistory.RecordSaveAsync(
+            Projects.ActiveBook?.Id ?? string.Empty, scene.Id, scene.WordCount);
+        else await WordHistory.RecordBaselineAsync(
             Projects.ActiveBook?.Id ?? string.Empty, scene.Id, scene.WordCount);
         await Projects.SaveScenesAsync();
         RaiseSceneSaved(chapter, scene);
@@ -292,7 +323,13 @@ public sealed record SceneDto(
     /// </summary>
     IReadOnlyList<string> PlotlineColors,
     /// <summary>The same threads by id, so the binder can filter by one.</summary>
-    IReadOnlyList<string> PlotlineIds);
+    IReadOnlyList<string> PlotlineIds)
+{
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+    public SharedEntityFieldsDto? SharedProse { get; init; }
+#endif
+}
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover,
     string? ProjectId = null, LibraryBookDto[]? Books = null, bool? HasWorldBible = null);

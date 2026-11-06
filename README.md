@@ -35,14 +35,35 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ## Features
 
+- **Collaboration (in development)** — relay server or direct TCP sessions, optional Steamworks integration with friend invitations and a local-copy join dialog, automatic browser sign-in when a server requires it or a chosen display name for anonymous relays, single-use
+  invitations, live project structure, scene planning notes and Codex prose with per-writer undo, research and asset synchronization,
+  participant cursors, scene badges and named Codex viewing/editing indicators, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
+  retained projects, independent project copies, and host controls for session access.
+  New connections default to TCP, or Steam when its runtime is available in a Steam-enabled build.
+  Relay mode links to the [community server](https://github.com/QF0xB/novalist-sync-server)
+  and its [setup guide](https://github.com/QF0xB/novalist-sync-server/blob/main/docs/relay.md);
+  use the HTTPS address of an instance run by you or your server administrator.
+  The relay forwards encrypted packets without storing projects or edit history; the host stays online.
+  Sign-in renews without replacing the session or invitations, with a bounded grace period for provider outages.
+  Connection and traffic limits protect hosts from repeated join requests.
+  Joining reuses matching files in an existing local copy by relative path and SHA-256, with progress and cancellation.
+  Shared Codex renames update scene mentions, section links, relationships, parent references and scene POV, and finish interrupted reference updates when retried or reopened.
+  Shared prose stays writable during connection interruptions;
+  structure and metadata edits require reconnecting. Open **Collaborate** in the top bar. See [Collaboration](docs/manual/23-settings.md#collaboration)
+  for the current capabilities and remaining work, or [Steam build requirements](docs/development/steam-collaboration.md)
+  for the optional native integration.
+  iPhone and iPad support relay-server and direct TCP sessions with desktop writers;
+  Steam is desktop-only. Mobile joins default to a local copy in Novalist's Files folder.
+
 ### Interface
 
 - **Desktop workspace layout** — horizontal navigation with the mode panel above the scene list even in narrow windows, system sans-serif controls and flat surfaces; a bookshelf library and dashboard artwork; consistent view headings and actions, tabbed Codex and Research, a cast-and-reading layout for Narration, and complete scene context beside the editor.
 
-- **Five workspaces** — Write, Plan, World, Publish and Series, each with the views it holds listed beside it, plus a Dashboard to come back to. Picking a workspace decides what the window looks like: the binder, the inspector and the scene-notes dock belong to Write, where there are chapters and scenes to act on.
+- **Five workspaces** — Write, Plan, World, Publish and Series, each with the views it holds listed beside it, plus a Dashboard to come back to. Picking a workspace decides what the window looks like: the binder and inspector belong to Write. The floating Scene Notes checklist stays available across workspaces.
 - **One command, one place** — where a command lives follows from what it acts on. Selected text, the thing under the pointer, the paragraph, the project, the application: each has one home, everywhere in the app, and the build refuses a change that gives a command two.
 - **A menu bar that is an index of the application** — File, Edit, Go, View, Window and Help, generated from Novalist's own list of commands so it cannot drift out of step with the palette, and always visible on Windows and Linux.
-- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. The **Inbox** tab gathers suggestions, tasks and saved fragments; **Notes** provides synopsis, notes, goal/outcome, timing, cast and custom fields, also available in the optional bottom dock.
+- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. The **Inbox** tab gathers suggestions, tasks and saved fragments; **Properties** provides synopsis, goal/outcome, timing, cast and custom fields.
+- **Dockable scene checklist** — dock notes above, below or beside any content pane using the existing resizable layouts, with docking placement and visibility remembered across restarts, or keep scene goals visible beside your writing or on another monitor in a compact panel that floats only above Novalist, with native Liquid Glass on supported macOS versions. Bullet lists automatically become checkboxes with expandable prose and nested subitems. Follow the active scene or hold one scene, pin the panel or auto-hide it, and edit the full notes text without losing its wording. Wide panels arrange goals left to right with the text editor below. Shared projects synchronize checklist ticks and note text with collaborators.
 - **Project to-dos** — keep loose tasks and named checklists in the desktop Inspector's **Inbox** tab or **Write → Inspector → To do** on iPad and iPhone. The same tasks travel with the project, separately from Scene Notes.
 - **Command palette** (`Ctrl+Shift+P`) that lists every command in the app, offers only the ones that can run right now, and shows the gesture bound to each — and any of them can be given one.
 - **A layout that follows the window** — measured from the window itself rather than the monitor, so a narrow window on a wide screen reflows properly and moving between displays of different scaling reflows again without a restart.
@@ -55,7 +76,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - WYSIWYG editor that fits the first opened scene to the available width and preserves your subsequent zoom, with inline formatting, paragraph styles (heading, subheading, block quote, verse), bulleted and numbered lists, inline comments, and numbered footnotes — every style carried through to DOCX, EPUB, Markdown and LaTeX.
 - Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
-- **Focus Mode** (`F11`) fills the screen with a centered page that widens as you zoom and hides the title and menu bars. Hover areas grow with the space beside the page; prepared binder and context panels slide in gently. Panels and notes overlay the page; your caret, split layout and previous window state survive the round trip. Choose page and surround colours or a background image in Settings → Focus.
+- **Focus Mode** (`F11`) fills the screen with a centered page that widens as you zoom and hides the title and menu bars. Hover areas grow with the space beside the page; prepared binder and context panels slide in gently. Panels overlay the page and Scene Notes has its own floating window; your caret, split layout and previous window state survive the round trip. Choose page and surround colours or a background image in Settings → Focus.
 - **Project bookshelf** fills the workspace with covers on open shelves, shelf filters, search, adjustable cover size and sorting. Select a cover for its details, related books, World Bible and Series actions; double-click or choose **Open book** to open it. A project's books stay together when arranging shelves. Generated title covers and uploaded artwork share book shading, gently open at the spine on hover or keyboard focus, and stay open while selected. Remove individual books or whole projects without deleting files, and restore them from the library menu.
 - **Scratchpad** stays within reach in the bookshelf header, even while scrolling. Jot down ideas without opening a project and file saved notes into a project's Research inbox later.
 - **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window. Windows share the active project, book and draft, and save pending edits together before switching context or quitting.
@@ -69,9 +90,9 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - Multi-book projects with a shared **World Bible** for entities used across books.
 - **Drafts you can manage** — every version of a book in one view: rename them, drag them into your own order, record what each one is for, duplicate one, and send whole chapters or single scenes from one draft to another, copying or moving.
-- Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, in-world date ranges editable during creation or renaming and inherited by undated scenes, label colors, and favorites.
+- Chapters with optional acts, in-world date ranges editable during creation or renaming and inherited by undated scenes, label colors, and favorites.
 - Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
-- **Smart Lists** — saved scene queries by status, POV, tag, or plotline.
+- **Smart Lists** — saved scene queries by scene stage, POV, tag, or plotline.
 - **Writing sprints** — a status-bar timer with words-this-sitting, live pace, and a per-project history.
 - **Manuscript import** — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text, RTF, or a **Scrivener** project. Chapters and scenes are worked out from the document's own heading styles, with a preview of the whole plan before anything is written; imports append rather than replace. Rich text and Scrivener keep the formatting that carries meaning — emphasis inside a sentence, headings, block quotations, verse, lists and alignment — along with the smart punctuation of whatever platform and language the file was written on. A Scrivener project comes across whole: parts become acts, the draft becomes chapters and scenes with their synopsis cards, notes, statuses, labels and custom fields, character and setting sketches become Codex entries, and research — notes, PDFs, pictures, recordings — is copied into the project. Scrivener marks only its draft, its trash and its template sheets, so where the rest of the binder goes is **yours to say**: every folder gets a row you can point at the manuscript, at a draft or book of its own, at the Codex, at research, or at nothing.
 - **Folder import** — bring Markdown, text, or structured JSON files into scenes, characters, locations, items, lore, research, or custom Codex types. Explicit labels and structure fill built-in and custom fields, including character-sheet appearance, linked images, and chapter overrides. Choose a target per subfolder, with inherited choices, searchable pages, batch progress, stop and continue, and duplicate protection. Export a book-specific [import schema with examples and an agent prompt](docs/import/README.md) to transform data using your own external AI agent.
@@ -106,7 +127,7 @@ English and German **dictation** writes directly at the editor caret. Built-in s
 - **Maps** — interactive layered map view: recursive layer tree with drag-and-drop nesting, per-layer opacity / lock / zoom-range / floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins; text labels; road & river spline tool with typed profiles (casing, fill, lane markings) and per-point width; terrain shapes (grass, forest, sand, …) with feathered, blendable edges and z-ordering; typed buildings (homes, schools, stations, …) with procedurally-generated footprints that snap to roads and optional multi-floor interior plans (walls, doors, windows, stairs); a freeform clip border that frames the whole map; **PNG export** at 1x/2x/4x for e-book or print, and a one-click **3D view** — a GPU-rendered, free-fly walkthrough of the whole map with extruded buildings, sloped roofs, interiors, terrain and roads.
 - **Planning board** — an infinite canvas of loose cards and author-drawn labelled connectors, for ideas that are not scenes yet. Promoting a card creates a scene with the card's text as its synopsis and keeps their titles in sync when renamed from either place. Many boards per project, stored as plain JSON beside the maps.
 - **Style report** — deterministic, offline craft checks over a scene, a chapter, or the whole book: adverbs, filter words, weak verbs, passive voice, stock phrases, sticky sentences, repeated sentence openers, and sentence-length variation. Word lists come from the same per-language analysis file as scene analysis, and a language without a list is reported as unsupported rather than shown as a clean zero. No AI, no network.
-- **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines, plus a wide project banner and a portrait book cover (the cover shows for each project on the welcome screen).
+- **Dashboard** — totals, scene-stage breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines, plus a wide project banner and a portrait book cover (the cover shows for each project on the welcome screen).
 
 ### Research & assets
 
@@ -195,18 +216,44 @@ The Extensions view has a built-in **store**: browse the online extension galler
 
 Externally managed installations can set `NOVALIST_DISABLE_SELF_UPDATE=1` before launching Novalist to block all app self-updates and hide their controls in Help, About and Settings, while retaining startup extension checks and extension updates. See [Updates & Integrations](docs/manual/23-settings.md#updates--integrations).
 
+Steam builds receive application updates through Steam. Their GitHub application updater is disabled permanently; extension updates remain available.
+
 The **Mac App Store edition has no extension feature** - no gallery, no installing from a folder, and no extension loaded. An extension is code the app downloads and runs to add features, which App Store rules do not permit and the sandbox would not load. The directly downloaded builds (macOS `.dmg`, Windows, Linux) are unaffected. Projects are identical across editions. See [`docs/manual/24-extensions.md`](docs/manual/24-extensions.md).
 
 ## Building
 
 Novalist is an Electron + React front end over a bundled .NET 10 core process (`Novalist.Backend`).
 
-Building and running the checks requires the .NET 10 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
+Building and running the checks requires the .NET 10 SDK and Node.js 22.22.2+ on the 22 LTS line, 24.15+ on the 24 LTS line, or 26+. The renderer tests use Node's TypeScript stripping API, and the collaboration document host uses a headless DOM. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
+
+The Android 13+ phone/tablet port is under development. **Open folder** uses Android's system folder selector to open an existing project and save back to that folder. Cloud locations depend on the installed provider's folder support and synchronization. **Import backup** restores a desktop ZIP or ZIP-based `.novalist` backup as a new project. Automatic mobile backups wait for idle time and interrupted cloud copies retry later; manual backups remain available in Settings. Build its APK on Windows with `./eng/Build-Android.ps1`; see [Android development](docs/android-development.md) for setup, emulator checks and outstanding beta requirements.
+
+The tagged-release workflow attaches signed Android alpha APKs and SHA-256 checksums to the same [GitHub release](https://github.com/Drommedhar/novalist-official/releases) as the desktop downloads. Choose `novalist-android-alpha-arm64.apk` for ARM64 phones/tablets or the x64 APK for emulators. Android uses the desktop version with `-alpha` appended (for example, `3.6.2-alpha`). These are APK downloads for manual installation; the workflow does not publish to Google Play.
 
 ### Development environment with devenv
 
 With [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/)
 installed, enter the pinned development environment from the repository root:
+
+On Linux, build and start the current checkout through the Nix package:
+
+```bash
+devenv shell build
+devenv shell run
+```
+
+`build` prints the immutable package path without opening a window. `run` builds
+if needed, reuses cached results, and launches that package. It uses the same
+packaging stages as the nixpkgs-style recipe: Node.js 24, Electron 44, a release
+.NET 10 backend, bundled renderer assets, and an FHS-wrapped backend. It does not
+depend on `app/node_modules` or a manually built debug backend. The source includes
+current local edits but excludes build output and development caches.
+
+ROCm libraries and MIOpen GPU databases are excluded by default. The package's
+`withRocm` argument enables them explicitly when testing AMD speech acceleration.
+The normal client and context-selection tests do not need those downloads.
+
+For individual checks or IDE development, enter the shell:
 
 ```bash
 devenv shell
@@ -216,18 +263,23 @@ dotnet build novalist-official.sln
 dotnet test novalist-official.sln --no-build
 npm --prefix app ci
 npm --prefix app run typecheck
-npm --prefix app run dev
 ```
 
-The environment provides the .NET 10 SDK, Node.js 22 with npm, Git and Python
+The environment provides the .NET 10 SDK, Node.js 24 with npm, Git and Python
 for the repository's tooling. On Linux it also supplies a Nix-patched Electron
-42 binary and skips npm's Electron download. The Electron major version in
-`devenv.nix` should follow `app/package.json`. On macOS, npm installs Electron
-normally.
+44 binary and skips npm's Electron download, matching the Linux package recipe.
+The npm development dependency in `app/package.json` is not downloaded on Linux.
+On macOS, npm installs Electron normally.
 
-On Linux, run `npm run dev` inside `devenv shell` (or through direnv): the shell
-sets both Electron's distribution override and electron-vite's executable
-override so the development launcher uses the Nix binary.
+For optional hot-reload development, run `npm --prefix app run dev` inside
+`devenv shell` after installing app dependencies and building the debug backend.
+This is a separate development-server path; use `devenv shell run` to test the
+packaged application and its runtime environment.
+
+The package's npm dependency hash lives in `nix/package.nix`; its NuGet dependency
+manifest is `nix/deps.json`. Update these when the corresponding dependencies
+change. The backend's `fetch-deps` helper is exposed as
+`outputs.novalist.backend.fetch-deps` for regenerating the NuGet manifest.
 
 For Rider, select `.devenv/state/dotnet` as the .NET CLI directory after entering
 the shell once. Keep `devenv.lock` committed so contributors resolve the same

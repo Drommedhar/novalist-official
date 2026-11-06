@@ -42,6 +42,7 @@ import sys
 #
 # Removing a line is the goal. Adding one needs a reason, not a shrug.
 ALLOWED_UNCALLED = {
+    "project/setChapterStatus": "legacy compatibility: chapter status remains writable for existing clients; the app now uses scene stages",
     "import/scanVault": "superseded: folderImport/scan discovers files for the generic folder importer; retained for older clients",
     "import/vault": "superseded: folderImport/start and folderImport/batch import research alongside the other targets; retained for older clients",
     "export/formats": "superseded: the export view keeps its own ordered list, with the label and extension each format needs",

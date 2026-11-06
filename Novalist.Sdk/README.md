@@ -53,6 +53,12 @@ Implement any of these interfaces alongside `IExtension` to integrate with the h
 
 See the full [Extension Developer Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md) for detailed instructions.
 
+## Deprecated chapter status
+
+`ChapterDetailInfo.Status` and `IExtensionStoryService.SetChapterStatusAsync` are deprecated with non-error `[Obsolete]` notices. Chapter status is no longer supported as an app workflow; these members remain only for compatibility with existing extensions and saved queries. Their stored values and read/write behavior are unchanged, and no chapter status is calculated from scenes.
+
+Use `SceneDetailInfo.Stage` and `SetSceneMetadataAsync` with `SceneMetadataPatch.Stage` for writing state. Existing compiled extensions continue to work. Recompiling callers emits a warning; projects treating warnings as errors must migrate or explicitly suppress the warning in compatibility code.
+
 ## License
 
 [MIT](https://github.com/Drommedhar/novalist-official/blob/main/LICENSE)

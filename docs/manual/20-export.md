@@ -285,9 +285,9 @@ Use cases for partial exports:
 
 - A single chapter to send to a critique partner.
 - The first three chapters as a submission packet.
-- Only chapters at Final status, to publish a polished excerpt.
+- Selected finished chapters, to publish a polished excerpt.
 
-For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex formats swap this list for the codex entry picker, and extension formats export the whole project and hide the list entirely. The Data formats keep the chapter list — it decides which scenes become rows — and JSON shows the entry picker as well.
+For chapter-based formats the list shows all chapters — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex formats swap this list for the codex entry picker, and extension formats export the whole project and hide the list entirely. The Data formats keep the chapter list — it decides which scenes become rows — and JSON shows the entry picker as well.
 
 Also see [Choosing what leaves a Codex entry](#choosing-what-leaves-a-codex-entry) for holding parts of an entry back.
 

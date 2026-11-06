@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'r
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
 import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
 
 interface SectionRow {
+  id?: string
   title: string
   content: string
 }
@@ -23,7 +25,7 @@ export function useEntitySections(
   const rows = useRef<SectionRow[]>([])
   const loadedFor = useRef<string | null>(null)
   const restoredRevision = useCodexStore((state) => state.restoredRevision)
-  const pending = useRef<{ type: string; id: string; sections: SectionRow[] } | null>(null)
+  const pending = useRef<{ type: string; id: string; sections: SectionRow[]; shared: string[] } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inFlight = useRef<Promise<void> | null>(null)
 
@@ -35,7 +37,8 @@ export function useEntitySections(
     pending.current = null
     const request = persistPendingWrite(`entity-sections:${draft.type}:${draft.id}`, async () => {
       const updated = await rpc.request<Record<string, unknown>>('entities/updateLists', [
-        draft.type, draft.id, null, draft.sections, null
+        draft.type, draft.id, null, draft.sections.map(section => ({ ...section,
+          content: section.id && draft.shared.includes(section.id) ? null : section.content })), null
       ])
       const codex = useCodexStore.getState()
       if (codex.entityType === draft.type && codex.selectedId === draft.id) {
@@ -55,7 +58,7 @@ export function useEntitySections(
   useEffect(() => {
     if (!selectedId || !record || record.id !== selectedId) return
     const owner = `${entityType}:${selectedId}:${restoredRevision}`
-    if (loadedFor.current === owner) return
+    if (loadedFor.current === owner && pending.current) return
     loadedFor.current = owner
     rows.current = Array.isArray(record.sections)
       ? (record.sections as SectionRow[]).map((section) => ({ ...section })) : []
@@ -74,6 +77,7 @@ export function useEntitySections(
     setState(rows.current)
     pending.current = {
       type: entityType, id: selectedId,
+      shared: rows.current.flatMap(section => section.id && proseBinding(record, `section:${section.id}`) ? [section.id] : []),
       sections: rows.current.map((section) => ({ ...section }))
     }
     if (timer.current) clearTimeout(timer.current)

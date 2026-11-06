@@ -2,7 +2,7 @@ import { expect, _electron as electron, type ElectronApplication, type Page } fr
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 
 /**
  * Launching the app and putting a small book in it.
@@ -41,12 +41,40 @@ export async function closeTestApp(app: ElectronApplication): Promise<void> {
   await app.close()
 }
 
+async function terminateFailedStartup(app: ElectronApplication): Promise<void> {
+  const child = app.process()
+  if (child.exitCode !== null || child.signalCode !== null) return
+  await new Promise<void>((resolve, reject) => {
+    let timer: ReturnType<typeof setTimeout>
+    const finish = (error?: Error): void => {
+      clearTimeout(timer)
+      child.removeListener('exit', exited)
+      child.removeListener('error', failed)
+      if (error) reject(error)
+      else resolve()
+    }
+    const exited = (): void => finish()
+    const failed = (error: Error): void => finish(error)
+    child.once('exit', exited)
+    child.once('error', failed)
+    // Startup may be blocked in native code. Neither evaluate nor app.close
+    // can be relied on until the main thread responds. Only signal this
+    // launch's child, and await its exit before returning control to the spec.
+    timer = setTimeout(() => {
+      try { child.kill('SIGKILL') } catch (error) { finish(error as Error) }
+    }, 5_000)
+    try { child.kill('SIGTERM') } catch (error) { finish(error as Error) }
+  })
+}
+
 export async function launchApp(
   prefix: string,
   /** Extra environment for the launch, e.g. NOVALIST_FORCE_MOBILE for the phone shell. */
-  extraEnv: Record<string, string> = {}
+  extraEnv: Record<string, string> = {},
+  existingWorkDir?: string,
+  launchArguments: string[] = []
 ): Promise<Harness> {
-  const workDir = mkdtempSync(join(tmpdir(), prefix))
+  const workDir = existingWorkDir ?? mkdtempSync(join(tmpdir(), prefix))
   const env: Record<string, string> = Object.fromEntries(
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>
@@ -61,42 +89,43 @@ export async function launchApp(
   // saved by one spec turn up in the next, so a test could pass or fail
   // depending on which ones had run before it.
   const app = await electron.launch({
-    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`],
+    args: [process.platform === 'linux' ? 'e2e/launch-app.cjs' : 'out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`, ...launchArguments],
     env
   })
-  const page = await app.firstWindow()
-  // The phone shell has no status bar to read the connection off, so it waits
-  // for its own root and for the RPC client the backend indicator stands for.
-  if (extraEnv.NOVALIST_FORCE_MOBILE === '1') {
-    // .shell.mobile is the root class; .mobile-shell only exists once a project
-    // is open, which is after this point.
-    await expect(page.locator('.shell.mobile')).toBeVisible({ timeout: 30_000 })
-    await page.waitForFunction(() => !!window.novalistRpc, undefined, { timeout: 30_000 })
-  } else {
-    // The status bar is contextual chrome and is intentionally absent before a
-    // project opens (including project-less Settings). Read the same backend
-    // readiness state directly instead of making every desktop test depend on
-    // that particular visual surface being mounted.
-    await page.waitForFunction(
-      () =>
-        Boolean(
-          window.novalistRpc && window.novalistStores?.shell.getState().backendVersion
-        ),
-      undefined,
-      { timeout: 30_000 }
-    )
+  try {
+    const page = await app.firstWindow()
+    // The phone shell has no status bar to read the connection off, so it waits
+    // for its own root and for the RPC client the backend indicator stands for.
+    if (extraEnv.NOVALIST_FORCE_MOBILE === '1') {
+      // .shell.mobile is the root class; .mobile-shell only exists once a project
+      // is open, which is after this point.
+      await expect(page.locator('.shell.mobile')).toBeVisible({ timeout: 30_000 })
+      await page.waitForFunction(() => !!window.novalistRpc, undefined, { timeout: 30_000 })
+    } else {
+      // The status bar is contextual chrome and is intentionally absent before a
+      // project opens (including project-less Settings). Read the same backend
+      // readiness state directly instead of making every desktop test depend on
+      // that particular visual surface being mounted.
+      await waitForAppReady(page)
+    }
+
+    // Recover lost evaluation replies through the same renderer result. Replaying
+    // an RPC after a lost reply can create a second scene or chapter.
+    const rpc = <T,>(method: string, params: unknown[] = []): Promise<T> =>
+      evaluateWhenReady(
+        page,
+        (a: { m: string; p: unknown[] }) => window.novalistRpc.request(a.m, a.p),
+        { m: method, p: params }
+      ) as Promise<T>
+
+    return { app, page, workDir, rpc, close: () => closeTestApp(app) }
+  } catch (error) {
+    // Until readiness succeeds the caller has no handle to dispose. In
+    // particular, a firstWindow timeout otherwise leaves a native guest alive
+    // and can stall Playwright's entire worker teardown.
+    await terminateFailedStartup(app).catch(() => {})
+    throw error
   }
-
-  // Recover lost evaluation replies through the same renderer result. Replaying
-  // an RPC after a lost reply can create a second scene or chapter.
-  const rpc = <T,>(method: string, params: unknown[] = []): Promise<T> =>
-    evaluateWhenReady(
-      page,
-      (a: { m: string; p: unknown[] }) => window.novalistRpc.request(a.m, a.p),
-      { m: method, p: params }
-    ) as Promise<T>
-
-  return { app, page, workDir, rpc, close: () => closeTestApp(app) }
 }
 
 /**
@@ -156,7 +185,7 @@ export async function dismissTour(page: Page): Promise<void> {
   const tour = page.locator('.tour-card')
   try {
     await tour.waitFor({ state: 'visible', timeout: 2_000 })
-    await tour.getByRole('button', { name: 'Close tour' }).click()
+    await tour.locator('.tour-close').click()
     await tour.waitFor({ state: 'hidden', timeout: 5_000 })
     // The tour walks the workspace and gives back the one it borrowed, and it
     // does that a task after it unmounts. Settling it here is what stops the

@@ -1,5 +1,14 @@
 import type { JSHandle, Page } from '@playwright/test'
 
+/** Wait for the backend handshake before a project or its status bar is mounted. */
+export async function waitForAppReady(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => Boolean(window.novalistRpc && window.novalistStores?.shell.getState().backendVersion),
+    undefined,
+    { timeout: 30_000 }
+  )
+}
+
 type Outcome<T> =
   | { ok: true; value: T }
   | { ok: false; message: string; stack?: string }

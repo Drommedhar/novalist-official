@@ -1,4 +1,3 @@
-import { type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { type ContextMenuItem } from './ContextMenu'
 
@@ -7,6 +6,7 @@ import { useShellStore } from '../stores/shellStore'
 import { useTargetStore } from '../stores/targetStore'
 
 import type { SceneMenuContext } from './binderSceneMenuContext'
+import { setSceneMetadata } from './sceneMetadataActions'
 export function sceneMergeItems(context: SceneMenuContext): ContextMenuItem[] {
   const { chapter, scene, sceneIndex, state } = context
   const { t, store } = state
@@ -37,7 +37,7 @@ export function sceneMergeItems(context: SceneMenuContext): ContextMenuItem[] {
 
 export function sceneExportItems(context: SceneMenuContext): ContextMenuItem[] {
   const { scene, targets, scoped, state } = context
-  const { t, setPending, store } = state
+  const { t, setPending } = state
   return [
 
           {
@@ -57,12 +57,8 @@ export function sceneExportItems(context: SceneMenuContext): ContextMenuItem[] {
               scene.excludeFromExport ? t('export.includeScene') : t('export.excludeScene')
             ),
             onClick: () => {
-              void rpc
-                .request<{ state: import('../stores/projectStore').ProjectStateDto }>(
-                  'sceneBulk/setExportInclusion',
-                  [targets.map((target) => target.sceneId), scene.excludeFromExport]
-                )
-                .then((result) => store.getState().applyState(result.state))
+              void setSceneMetadata(targets, 'excludeFromExport', !scene.excludeFromExport,
+                target => rpc.request('sceneBulk/setExportInclusion', [[target.sceneId], scene.excludeFromExport]))
             }
           }
   ]
@@ -109,7 +105,7 @@ export function sceneBookmarkItems(context: SceneMenuContext): ContextMenuItem[]
 
 export function sceneActivityItems(context: SceneMenuContext): ContextMenuItem[] {
   const { scene, targets, scoped, state } = context
-  const { t, store } = state
+  const { t } = state
   return [
 
           {
@@ -117,17 +113,8 @@ export function sceneActivityItems(context: SceneMenuContext): ContextMenuItem[]
             // scene and archiving it, which until now was the only way down.
             label: scoped(scene.inactive ? t('scene.makeActive') : t('scene.makeInactive')),
             onClick: () => {
-              void Promise.all(
-                targets.map((target) =>
-                  rpc.request('scenes/setInactive', [
-                    target.chapterGuid,
-                    target.sceneId,
-                    !scene.inactive
-                  ])
-                )
-              )
-                .then(() => rpc.request<ProjectStateDto>('project/getState'))
-                .then((state) => store.getState().applyState(state))
+              void setSceneMetadata(targets, 'inactive', !scene.inactive,
+                target => rpc.request('scenes/setInactive', [target.chapterGuid, target.sceneId, !scene.inactive]))
             }
           }
   ]
