@@ -22,6 +22,12 @@ test('a word taught from the prose lands in the writer own dictionary', async ()
     const editor = h.page.frameLocator('.editor-frame').locator('#editor')
     await expect(editor).toBeVisible({ timeout: 30_000 })
     await editor.click()
+    // Focus restores scroll asynchronously; finish that before anchoring a menu.
+    await expect.poll(() => editor.evaluate(element =>
+      (element.ownerDocument.defaultView as unknown as {
+        NovalistEditorState: { isFocusing: boolean }
+      }).NovalistEditorState.isFocusing
+    )).toBe(false)
     await h.page.keyboard.type('The Aelthorn banner burned. ')
 
     // Nothing was learned before the writer asked for it.

@@ -231,7 +231,7 @@ jobs:
             # override password storage even when standalone Electron is secure.
             npx playwright test e2e/linux-credential-store.spec.ts
             npx playwright test e2e/collaboration-account.spec.ts e2e/collaboration-peer.spec.ts e2e/m38-context-menu-groups.spec.ts
-            DEBUG=pw:browser npx playwright test e2e/workspace-windows-regression.spec.ts --grep "backend restart restores" --repeat-each=20
+            DEBUG=pw:browser npx playwright test e2e/workspace-windows-regression.spec.ts e2e/m68-dictionary-word.spec.ts --grep "backend restart restores|a word taught" --repeat-each=20
             npx playwright test
           SESSION
 
