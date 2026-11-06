@@ -39,7 +39,10 @@ try {
         -alias novalist-alpha -storepass:env ANDROID_SIGNING_PASSWORD -file $certificate
     if ($LASTEXITCODE -ne 0) { throw 'Could not read the alpha signing certificate.' }
     $fingerprint = (Get-FileHash -LiteralPath $certificate -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($verification -notcontains "Signer #1 certificate SHA-256 digest: $fingerprint") {
+    $signerFingerprints = @($verification |
+        Select-String -Pattern '^(?:Signer\b|V[0-9.]+ Signer:).* certificate SHA-256 digest: ([0-9a-fA-F]{64})$' |
+        ForEach-Object { $_.Matches[0].Groups[1].Value })
+    if ($signerFingerprints.Count -eq 0 -or $signerFingerprints.Where({ $_ -ne $fingerprint }).Count -gt 0) {
         throw 'The APK was not signed with the configured alpha key.'
     }
 } finally {

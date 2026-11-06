@@ -1,5 +1,6 @@
-"""Check the Android publisher's build arguments without a native SDK or signing key."""
+"""Check Android alpha publishing without a native SDK or signing key."""
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -55,6 +56,90 @@ throw 'Stopped before native Android build'
         result = self.invoke("not-a-release")
         self.assertIn("Expected a version tag", result.stderr)
         self.assertFalse((self.root / "arguments.json").exists())
+
+
+class AndroidAlphaSigningTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(prefix="novalist-alpha-signing-")
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        eng = self.root / "eng"
+        eng.mkdir()
+        shutil.copyfile(ROOT / "eng/Publish-AndroidAlpha.ps1", eng / "Publish-AndroidAlpha.ps1")
+        (eng / "Build-Android.ps1").write_text("", encoding="utf-8")
+        apk = self.root / "Novalist.Mobile/bin/Release/net10.0-android/android-arm64/publish/com.novalist.app-Signed.apk"
+        apk.parent.mkdir(parents=True)
+        apk.write_bytes(b"fixture APK")
+        (self.root / "sdk/build-tools/37.0.0").mkdir(parents=True)
+        (self.root / "certificate.der").write_bytes(b"alpha certificate")
+        self.fingerprint = hashlib.sha256(b"alpha certificate").hexdigest()
+        self.asset = self.root / "artifacts/android-alpha/android-arm64/novalist-android-alpha-arm64.apk"
+        (self.root / "verify.ps1").write_text("""
+$ErrorActionPreference = 'Stop'
+$fixture = Get-Content "$PSScriptRoot/verification.json" -Raw | ConvertFrom-Json
+$javaCommand = Join-Path 'fixture-jdk' 'bin/java.exe'
+Set-Item -LiteralPath "Function:global:$javaCommand" -Value {
+    $fixture.output
+    $global:LASTEXITCODE = $fixture.verifyExit
+}
+$keytoolCommand = Join-Path 'fixture-jdk' 'bin/keytool.exe'
+Set-Item -LiteralPath "Function:global:$keytoolCommand" -Value {
+    Copy-Item -LiteralPath "$PSScriptRoot/certificate.der" -Destination $args[$args.IndexOf('-file') + 1]
+    $global:LASTEXITCODE = $fixture.certificateExit
+}
+& "$PSScriptRoot/eng/Publish-AndroidAlpha.ps1" -Tag v3.7.0 -VersionCode 123 `
+    -Runtime android-arm64 -SigningKeyStore unused.keystore `
+    -AndroidSdkDirectory "$PSScriptRoot/sdk" -JavaSdkDirectory fixture-jdk
+""", encoding="utf-8")
+
+    def invoke(self, lines, verify_exit=0, certificate_exit=0):
+        (self.root / "verification.json").write_text(json.dumps({
+            "output": lines, "verifyExit": verify_exit, "certificateExit": certificate_exit,
+        }), encoding="utf-8")
+        return subprocess.run([
+            "pwsh", "-NoProfile", "-NonInteractive", "-File", str(self.root / "verify.ps1"),
+        ], capture_output=True, text=True, encoding="utf-8", timeout=15)
+
+    def test_verified_alpha_certificate_stages_apk_and_checksum(self):
+        for label in ("Signer #1", "V3.0 Signer:",
+                      "Signer (minSdkVersion=33, maxSdkVersion=2147483647)",
+                      "V3.1 Signer: (minSdkVersion=33, maxSdkVersion=2147483647)"):
+            with self.subTest(label=label):
+                result = self.invoke([
+                    "Verifies", "Number of signers: 1",
+                    f"{label} certificate SHA-256 digest: {self.fingerprint}",
+                ])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(self.asset.read_bytes(), b"fixture APK")
+                self.assertEqual(self.asset.with_suffix(".apk.sha256").read_text().strip(),
+                                 f"{hashlib.sha256(b'fixture APK').hexdigest()}  {self.asset.name}")
+
+    def test_wrong_missing_or_unrelated_certificate_never_stages_apk(self):
+        for lines in (["Verifies"],
+                      [f"Signer #1 certificate SHA-256 digest: {'0' * 64}"],
+                      [f"V3.0 Signer: certificate SHA-256 digest: {'0' * 64}"],
+                      [f"V3.0 Signer: public key SHA-256 digest: {self.fingerprint}"],
+                      [f"Source Stamp Signer certificate SHA-256 digest: {self.fingerprint}"],
+                      [f"V3.0 Signer: certificate SHA-256 digest: {self.fingerprint}",
+                       f"V3.1 Signer: certificate SHA-256 digest: {'0' * 64}"]):
+            with self.subTest(lines=lines):
+                result = self.invoke(lines)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("not signed with the configured alpha key", result.stderr)
+                self.assertFalse(self.asset.exists())
+
+    def test_tool_failures_never_stage_apk(self):
+        for verify_exit, certificate_exit, message in (
+            (1, 0, "APK signature verification failed"),
+            (0, 1, "Could not read the alpha signing certificate"),
+        ):
+            with self.subTest(message=message):
+                result = self.invoke([
+                    f"Signer #1 certificate SHA-256 digest: {self.fingerprint}",
+                ], verify_exit, certificate_exit)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(message, result.stderr)
+                self.assertFalse(self.asset.exists())
 
 
 if __name__ == "__main__":

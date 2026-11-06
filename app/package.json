@@ -9,7 +9,7 @@
   },
   "scripts": {
     "postinstall": "node scripts/patch-electron-builder.cjs && node scripts/sync-editor-sanitizer.mjs && install-electron",
-    "test:packaging": "node --test scripts/patch-electron-builder.test.cjs",
+    "test:packaging": "node --test scripts/*.test.cjs",
     "test:transport": "node --experimental-strip-types --test scripts/*.test.mjs",
     "collab:server": "node --experimental-strip-types scripts/collaboration-manual-server.mjs",
     "dev": "electron-vite dev",
