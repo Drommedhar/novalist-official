@@ -123,11 +123,11 @@ function getCleanContentHtml() {
 }
 
 /** Captures real edits synchronously, comparing browser-normalized prose. */
-function capturePendingContentChange() {
+function capturePendingContentChange(lastReceivedHtml = window.NovalistEditorState.lastHtml) {
     if (window.NovalistEditorState.isComposing || window.NovalistEditorState.isSettingContent) return null;
     window.refreshSceneBreakClasses(window.NovalistEditorState.editor);
     const html = getCleanContentHtml();
-    if (html !== window.NovalistEditorState.lastHtml) {
+    if (html !== lastReceivedHtml) {
         window.NovalistEditorState.lastHtml = html;
         return {
             html: html,

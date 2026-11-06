@@ -17,7 +17,7 @@ export function useEditorPersistence({ editorRef, pane, openSceneId, lastReporte
       const store = useProjectStore.getState()
       const current = editorPane(store, pane)
       if (live && current.sceneId) {
-        const change = live.capturePendingContentChange()
+        const change = live.capturePendingContentChange(lastReportedHtmlRef.current ?? undefined)
         if (change) {
           lastReportedHtmlRef.current = change.html
           store.onEditorContentChanged(pane, change.html, change.plainText)

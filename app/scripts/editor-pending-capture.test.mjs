@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { readFileSync } from 'node:fs'
+import { runInNewContext } from 'node:vm'
 import { loadRendererSource } from './renderer-source-loader.mjs'
 
-test('captured typing stays clean after its delayed report without resetting content or dropping later edits', () => {
+const contentInputSource = readFileSync(new URL('../src/renderer/public/editor/content-input.js', import.meta.url), 'utf8')
+
+for (const reportQueued of [false, true]) test(`captured typing stays clean with a ${reportQueued ? 'queued' : 'pending'} report without resetting content or dropping later edits`, () => {
   let capture, resets = 0, html = '<p>Saved.</p>'
-  let capturedHtml = html
   const updates = []
   const state = {
     editors: { pane: { sceneId: 'scene', html, plainText: 'Saved.' } },
@@ -14,16 +17,21 @@ test('captured typing stays clean after its delayed report without resetting con
     }
   }
   const live = {
-    setSceneContext() {},
     setContent(value) { resets++; html = value },
     getContent: () => html,
     getPlainText: () => 'Saved. Typed now.',
-    capturePendingContentChange() {
-      if (html === capturedHtml) return null
-      capturedHtml = html
-      return { html, plainText: this.getPlainText() }
+    clearGrammarHighlights() {},
+    refreshSceneBreakClasses() {},
+    NovalistEditorState: {
+      lastHtml: html,
+      editor: {
+        innerText: 'Saved. Typed now.',
+        cloneNode: () => ({ innerHTML: html, querySelectorAll: () => [] })
+      }
     }
   }
+  runInNewContext(contentInputSource, { window: live })
+  live.setSceneContext = () => {}
   const hooks = loadRendererSource('src/views/editor/useEditorSynchronization.ts', {
     react: { useEffect: effect => effect(), useLayoutEffect: effect => effect() },
     '../../stores/editorBridgeStore': {},
@@ -46,6 +54,7 @@ test('captured typing stays clean after its delayed report without resetting con
   hooks.useEditorScene(model)
   hooks.useEditorPersistence(model)
   html = '<p>Saved. Typed now.</p>'
+  if (reportQueued) live.capturePendingContentChange()
   capture()
   hooks.useEditorScene({ ...model, sceneHtml: state.editors.pane.html })
   capture()

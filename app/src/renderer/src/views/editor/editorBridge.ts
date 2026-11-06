@@ -30,8 +30,8 @@ export interface EditorWindow extends Window {
     tag?: { close: string; language: string }): boolean
   /** Sends any edit still inside the iframe's short change debounce. */
   flushPendingContentChange(): void
-  /** Captures an unreported edit without treating normalized loaded prose as dirty. */
-  capturePendingContentChange(): { html: string; plainText: string } | null
+  /** A host baseline also captures reports still queued in postMessage. */
+  capturePendingContentChange(lastReceivedHtml?: string): { html: string; plainText: string } | null
   setTheme(
     bg: string,
     fg: string,
